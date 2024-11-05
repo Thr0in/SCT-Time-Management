@@ -65,14 +65,14 @@ class CalendarContent(tk.Frame):
         super().__init__(master=parent, relief="solid", borderwidth=1, padx=10,
                          pady=10)
 
-        self.days = [0] * 35
+        self.days = []
 
         for i in range(0, 7):
             day = calendar.day_name[i]
             tk.Label(self, text=day).grid(row=0, column=i)
 
         for i in range(0, 35):
-            self.days[i] = DayWidget(self)
+            self.days.append(DayWidget(self))
             day = self.days[i]
             day.grid(row=i // 7 + 1, column=i % 7, padx=5, pady=5)
             day.set_day_number(i)
