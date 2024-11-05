@@ -1,5 +1,4 @@
 *.pyc
-data.csv
-*.pyc
 __pycache__/
+data.csv
 default.csv
