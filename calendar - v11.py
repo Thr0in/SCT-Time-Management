@@ -249,6 +249,8 @@ class CalendarApp:
         self.start_entry.insert(0, current_time)
         self.log_time(current_time, is_start=True)
 
+        self.export_timesheet()
+
     def set_current_end(self):
         current_time = datetime.now().strftime("%H:%M")
         self.end_entry.delete(0, tk.END)
