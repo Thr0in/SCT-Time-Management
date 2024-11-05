@@ -66,10 +66,10 @@ The `test_main.py` script is the main entry point for running the application. I
 
 1. Clone this repository to your local machine:
    ```bash
-   git clone https://github.com/your-username/your-repo-name.git
+   git clone https://github.com/Thr0in/SCT-Time-Management.git
 2. Navigate to the project directory:
    ```bash
-   cd your-repo-name
+   cd SCT-Time-Management
 3. Run the application:
    ```bash
    python test_main.py
@@ -85,11 +85,3 @@ The `test_main.py` script is the main entry point for running the application. I
 
 - Python 3.x
 - Tkinter (usually included with Python)
-
-
-### Additional Notes
-
-- Replace `"your-username/your-repo-name"` with the actual repository URL if hosted on GitHub.
-- Add any additional dependencies or environment setup steps if needed.
-  
-This README provides clear instructions for users and developers, covering features, modules, setup, and usage.
