@@ -13,7 +13,7 @@ import tkinter as tk
 import calendar
 
 
-class DayWidget(tk.Button):
+class DayWidget(tk.Frame):
     """
     A class used to represent a working day element in the
     SCT time management GUI.
