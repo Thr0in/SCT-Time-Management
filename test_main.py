@@ -4,18 +4,14 @@ Created on Mon Nov  4 18:46:08 2024
 
 @author: Luka
 """
-
-from sct_gui import DayWidget, CalendarWidget, SideBar
 import tkinter as tk
+
+from calendar_widget import CalendarWidget
+from side_bar import SideBar
+
 
 root = tk.Tk()
 root.geometry('1100x620')
-
-# label = Label(root, text="Test", font=("Helvetica", 18), fg="white", bg="green", borderwidth=2, relief="solid", padx=5,pady=5)
-# label.grid(column=0, row=0)
-
-
-
 
 
 calendar = CalendarWidget(root)
