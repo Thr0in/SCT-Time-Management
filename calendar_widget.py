@@ -6,6 +6,8 @@ Created on Tue Nov  5 15:58:42 2024
 """
 import tkinter as tk
 import calendar
+from dateutil.relativedelta import relativedelta
+
 from day_widget import DayWidget
 
 
@@ -18,6 +20,10 @@ class CalendarHeader(tk.Frame):
     __init__(parent)
         Initializes the header with navigation buttons
         and a label for the month.
+    next_month()
+        Advances the calendar display by one month.
+    previous_month()
+        Moves the calendar display back by one month.
     """
 
     def __init__(self, parent):
@@ -32,12 +38,30 @@ class CalendarHeader(tk.Frame):
         """
         super().__init__(master=parent, relief="solid", borderwidth=1)
 
-        tk.Button(self, text="<").grid(column=0, row=0)
-        tk.Button(self, text=">").grid(column=2, row=0)
+        tk.Button(self, text="<", command=lambda: self.previous_month()).grid(
+            column=0, row=0)
+        tk.Button(self, text=">", command=lambda: self.next_month()
+                  ).grid(column=2, row=0)
 
         self.var_selected_month = tk.StringVar(value="Month YYYY")
-        tk.Label(self, textvariable=self.var_selected_month).grid(column=1,
-                                                                  row=0)
+        tk.Label(self, textvariable=self.var_selected_month,
+                 width=15).grid(column=1, row=0)
+
+    def next_month(self):
+        """
+        Advances the calendar display by one month,
+        updating the main calendar widget.
+        """
+        main = self.master.main
+        main.select_month(main.selected_date + relativedelta(months=1))
+
+    def previous_month(self):
+        """
+        Moves the calendar display back by one month,
+        updating the main calendar widget.
+        """
+        main = self.master.main
+        main.select_month(main.selected_date + relativedelta(months=-1))
 
 
 class CalendarContent(tk.Frame):
@@ -71,7 +95,7 @@ class CalendarContent(tk.Frame):
             day = calendar.day_name[i]
             tk.Label(self, text=day).grid(row=0, column=i)
 
-        for i in range(0, 35):
+        for i in range(0, 42):
             self.days.append(DayWidget(self))
             day = self.days[i]
             day.grid(row=i // 7 + 1, column=i % 7, padx=5, pady=5)
@@ -88,7 +112,7 @@ class CalendarWidget(tk.Frame):
         Initializes the CalendarWidget with header and content.
     """
 
-    def __init__(self, parent):
+    def __init__(self, parent, main):
         """
         Constructs all necessary attributes for the CalendarWidget object.
 
@@ -98,6 +122,8 @@ class CalendarWidget(tk.Frame):
             The parent widget in which this calendar widget will be placed.
         """
         super().__init__(master=parent, relief="solid", borderwidth=1)
+
+        self.main = main
 
         self.header = CalendarHeader(self)
         self.content = CalendarContent(self)
