@@ -1,0 +1,7 @@
+# Data
+USE_DATABASE = False
+DAILY_WORKING_HOURS = 8
+
+# Colors
+HIGHLIGHT_COLOR = 'azure3'
+DISABLED_COLOR = 'lightgray'

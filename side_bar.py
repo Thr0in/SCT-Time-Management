@@ -11,6 +11,8 @@ current work status.
 """
 import tkinter as tk
 
+import gui_constants
+
 
 class SideBar(tk.Frame):
     """
@@ -32,7 +34,8 @@ class SideBar(tk.Frame):
             The parent widget in which this sidebar will be placed.
         """
 
-        super().__init__(master=parent, bg="azure3", padx=20, pady=20)
+        super().__init__(master=parent, bg=gui_constants.HIGHLIGHT_COLOR,
+                         padx=20, pady=20)
 
         self.info_panel = InfoPanel(self)
 

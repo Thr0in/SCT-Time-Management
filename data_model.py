@@ -9,8 +9,7 @@ from datetime import date, datetime
 import os.path
 import csv
 
-DATABASE = False
-DAILY_WORKING_HOURS = 8
+import gui_constants
 
 
 class WorkingDay():
@@ -158,7 +157,7 @@ class WorkTimeEmployee():
 
 # Deduct expected daily working hours if the day is not "sick" or "vacation"
             if day.state not in ("sick", "vacation"):
-                flex_time -= (DAILY_WORKING_HOURS * 3600)
+                flex_time -= (gui_constants.DAILY_WORKING_HOURS * 3600)
 
         return flex_time
 
@@ -168,7 +167,7 @@ class WorkTimeEmployee():
         The CSV should contain 'Date', 'Start Time', 'End Time', 'Break Time',
         and 'State' columns.
         """
-        if DATABASE:
+        if gui_constants.USE_DATABASE:
             print("Accessing database...")
         else:
             try:
@@ -195,7 +194,7 @@ class WorkTimeEmployee():
         Saves the working_days dictionary to a CSV file with columns 'Date',
         'Start Time', 'End Time', 'Break Time', and 'State'.
         """
-        if DATABASE:
+        if gui_constants.USE_DATABASE:
             print("Accessing database...")
         else:
             with open(self.file_path, 'w', newline='') as csvfile:
