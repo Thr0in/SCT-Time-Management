@@ -96,7 +96,7 @@ class DayWidget(tk.Frame):
 
         # Day number
         tk.Label(self, textvariable=self.var_day, border=1,
-                 relief='solid').grid(sticky="nw", row=0, column=0)
+                 relief='solid', width=2).grid(sticky="nw", row=0, column=0)
 
         # Start and end of working time
 # =============================================================================
