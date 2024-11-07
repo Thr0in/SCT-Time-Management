@@ -2,9 +2,10 @@
 """
 Created on Wed Nov  6 21:49:00 2024
 
-This module provides the main graphical user interface (GUI) logic for the SCT time management application.
-It creates a `Timesheet` application window containing a calendar and sidebar, allowing users to navigate
-and interact with their daily and monthly timesheets.
+This module provides the main graphical user interface (GUI) logic for the
+SCT time management application.
+It creates a `Timesheet` application window containing a calendar and sidebar,
+allowing users to navigate and interact with their monthly timesheets.
 
 Classes:
 --------
@@ -19,10 +20,12 @@ get_month_days(date_object)
     padding days to create a 6x7 grid.
 
 change_color(color, container=None)
-    Changes the background color of a container widget and all its child widgets.
+    Changes the background color of a container widget
+    and all its child widgets.
 
 select_month(date_object=date.today())
-    Updates the calendar display based on the selected month, highlighting the current day if applicable.
+    Updates the calendar display based on the selected month,
+    highlighting the current day if applicable.
 
 @author: Luka, jnath
 """
@@ -63,14 +66,16 @@ class Timesheet:
     change_color(color, container=None)
         Recursively changes the background color of a widget and its children.
     select_month(date_object=date.today())
-        Updates the calendar display to reflect the selected month and highlights
-        the current date if applicable.
+        Updates the calendar display to reflect the selected
+        month and highlights the current date if applicable.
     """
 
     def __init__(self):
         """
-        Initializes the Timesheet application window with a calendar and sidebar.
-        Sets the window dimensions, initializes the selected date, and starts the main loop.
+        Initializes the Timesheet application
+        window with a calendar and sidebar.
+        Sets the window dimensions, initializes the
+        selected date, and starts the main loop.
         """
         self.selected_date = date.today()
         self.root = tk.Tk()
@@ -88,7 +93,8 @@ class Timesheet:
 
     def get_month_days(self, date_object):
         """
-        Generates a list of days for a given month with padding to complete a 6x7 grid.
+        Generates a list of days for a given month with padding
+        to complete a 6x7 grid.
 
         Parameters
         ----------
@@ -98,7 +104,8 @@ class Timesheet:
         Returns
         -------
         list
-            A list of integers representing the days of the month, with 0s for padding.
+            A list of integers representing the days of the month,
+            with 0s for padding.
         """
         month_days = calendar.monthcalendar(date_object.year,
                                             date_object.month)
@@ -107,7 +114,8 @@ class Timesheet:
 
     def change_color(self, color, container=None):
         """
-        Recursively changes the background color of a widget and its child widgets.
+        Recursively changes the background color of a widget
+        and its child widgets.
 
         Parameters
         ----------
@@ -135,20 +143,18 @@ class Timesheet:
         Parameters
         ----------
         date_object : date, optional
-            The date object representing the month to display. Defaults to today.
+            The date object representing the month to display.
+            Defaults to today.
         """
         if date_object == "self.selected_date":
             date_object = self.selected_date
-            print(date_object)
         else:
             self.selected_date = date_object
-
 
         self.calendar.header.var_selected_month.set(
             self.selected_date.strftime("%B %Y"))
 
         month_days = self.get_month_days(date_object)
-        print(month_days)
 
         for day, month_day in zip(self.calendar.content.days, month_days):
             day.var_day.set(month_day)
