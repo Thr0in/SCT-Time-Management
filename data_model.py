@@ -5,10 +5,11 @@ test
 @author: Luka
 """
 
-from datetime import date, datetime
+import datetime as dt
 import os.path
 import csv
 
+from datetime_functions import DatetimeFunctions
 import gui_constants
 
 
@@ -18,10 +19,10 @@ class WorkingDay():
 
     Attributes
     ----------
-    start_time : int or None
-        Start time in seconds from midnight or None if not set.
-    end_time : int or None
-        End time in seconds from midnight or None if not set.
+    start_time : datetime.time or None
+        Start time as a time object or None if not set.
+    end_time : datetime.time or None
+        End time as a time object or None if not set.
     break_time : int or None
         Break time in seconds or None if not set.
     state : str
@@ -29,6 +30,7 @@ class WorkingDay():
     date : datetime.date
         The date for this working day.
     """
+
 
     def __init__(self, date_object):
         """
@@ -68,9 +70,9 @@ class WorkTimeEmployee():
 
     Methods
     -------
-    create_day(date_object=date.today())
+    create_day(date_object=dt.date.today())
         Creates a new WorkingDay for a given date.
-    get_day(date_object=date.today())
+    get_day(date_object=dt.date.today())
         Retrieves a WorkingDay for the specified date.
     get_flex_time()
         Calculates the employee's accumulated flex time in seconds.
@@ -101,7 +103,7 @@ class WorkTimeEmployee():
         else:
             self.save_working_days()
 
-    def create_day(self, date_object=date.today()):
+    def create_day(self, date_object=dt.date.today()):
         """
         Creates a new WorkingDay instance for the specified date and adds
         it to the working_days dictionary.
@@ -116,11 +118,15 @@ class WorkTimeEmployee():
         WorkingDay
             The newly created WorkingDay instance.
         """
-        day = WorkingDay(date_object)
-        self.working_days["{:%Y%m%d}".format(date_object)] = day
+        if "{:%Y%m%d}".format(date_object) in self.working_days:
+            day = self.working_days["{:%Y%m%d}".format(date_object)]
+        else:
+            day = WorkingDay(date_object)
+            self.working_days["{:%Y%m%d}".format(date_object)] = day
+
         return day
 
-    def get_day(self, date_object=date.today()):
+    def get_day(self, date_object=dt.date.today()):
         """
         Retrieves the WorkingDay instance for the specified date.
 
@@ -152,7 +158,8 @@ class WorkTimeEmployee():
 
         for day in self.working_days.values():
             if day.start_time is not None and day.end_time is not None:
-                flex_time += day.end_time - day.start_time
+                flex_time += DatetimeFunctions.get_time_difference(
+                    self, day.start_time, day.end_time)
 
                 if day.break_time is not None:
                     flex_time += day.break_time
@@ -165,9 +172,8 @@ class WorkTimeEmployee():
 
     def load_working_days(self):
         """
-        Loads working days from a CSV file into the working_days dictionary.
-        The CSV should contain 'Date', 'Start Time', 'End Time', 'Break Time',
-        and 'State' columns.
+        Saves the working_days dictionary to a CSV file with columns 'Date',
+        'Start Time', 'End Time', 'Break Time', and 'State'.
         """
         if gui_constants.USE_DATABASE:
             print("Accessing database...")
@@ -177,13 +183,11 @@ class WorkTimeEmployee():
                     reader = csv.DictReader(csvfile)
 
                     for row in reader:
-                        date_object = datetime.strptime(row['Date'], '%Y%m%d')
+                        date_object = dt.datetime.strptime(row['Date'], '%Y%m%d')
                         day = self.create_day(date_object)
 
-                        day.start_time = int(
-                            row['Start Time']) if row['Start Time'] else None
-                        day.end_time = int(
-                            row['End Time']) if row['End Time'] else None
+                        day.start_time = DatetimeFunctions.convert_string_to_time(self, row['Start Time']) if row['Start Time'] else None
+                        day.end_time = DatetimeFunctions.convert_string_to_time(self, row['End Time']) if row['End Time'] else None
                         day.break_time = int(
                             row['Break Time']) if row['Break Time'] else None
                         day.state = row['State']
@@ -209,8 +213,8 @@ class WorkTimeEmployee():
                 for date_string, day in self.working_days.items():
                     writer.writerow({
                         'Date': date_string,
-                        'Start Time': day.start_time,
-                        'End Time': day.end_time,
+                        'Start Time': day.start_time.strftime('%H:%M'),
+                        'End Time': day.end_time.strftime('%H:%M'),
                         'Break Time': day.break_time,
                         'State': day.state
                     })
@@ -220,11 +224,10 @@ class WorkTimeEmployee():
 if __name__ == "__main__":
     test = WorkTimeEmployee()
     test.create_day()
-
-    today = test.get_day(date.today())
-    today.start_time = 8 * 60 * 60  # 8 AM in seconds
-    today.end_time = 16 * 60 * 60  # 4 PM in seconds
-    today.state = "sick"
+    # today = test.get_day(dt.date.today())
+    # today.start_time = dt.datetime.now().time() # 8 AM in seconds
+    # today.end_time = dt.datetime.now().time().replace(hour=16)  # 4 PM in seconds
+    # today.state = "sick"
 
     test.save_working_days()
     print(list(test.working_days.items()))
