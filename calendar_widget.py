@@ -128,5 +128,5 @@ class CalendarWidget(tk.Frame):
         self.header = CalendarHeader(self)
         self.content = CalendarContent(self)
 
-        self.header.pack(expand=True, fill=tk.BOTH)
-        self.content.pack()
+        self.header.pack()
+        self.content.pack(expand=True, fill=tk.Y)

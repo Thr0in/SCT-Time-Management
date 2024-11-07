@@ -85,7 +85,7 @@ class Timesheet:
         self.side_bar = SideBar(self.root)
 
         self.side_bar.pack(side="left", expand=True, fill=tk.BOTH)
-        self.calendar.pack(side="left")
+        self.calendar.pack(side="top", expand=True, fill=tk.Y)
 
         self.select_month()
 
@@ -134,6 +134,16 @@ class Timesheet:
                 # child has children, go through its children
                 self.change_color(color, child)
 
+    def hide_empty_row(self):
+        month_days_flat = sum(calendar.monthcalendar(
+            self.selected_date.year, self.selected_date.month), [])
+        if len(month_days_flat) <= 35:
+            for i in range(35, 42):
+                self.calendar.content.days[i].grid_remove()
+        else:
+            for i in range(35, 42):
+                self.calendar.content.days[i].grid()
+
     def select_month(self, date_object=date.today()):
         """
         Updates the calendar to display the days of the selected month.
@@ -170,6 +180,7 @@ class Timesheet:
 
             else:
                 self.change_color('SystemButtonFace', day)
+        self.hide_empty_row()
 
 
 # Testing GUI
