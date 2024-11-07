@@ -89,12 +89,33 @@ class Timesheet:
         self.calendar.pack(side="top", expand=True, fill=tk.Y)
 
         self.employees = {}
+        self.current_employee = "default"
+        self.add_employee(self.current_employee)
 
         self.select_month()
-
-        self.add_employee("default")
-
+        self.update_from_db()
         self.root.mainloop()
+
+    def update_from_db(self):
+        self.employees.get(self.current_employee).load_working_days()
+        for day in self.calendar.content.days:
+            number_of_days = calendar.monthrange(self.selected_date.year, self.selected_date.month)[1]
+
+            if (day.var_day.get() != '' and
+                    int(day.var_day.get()) in range(1, number_of_days+1)):
+                current_date = self.selected_date.replace(
+                    day=int(day.var_day.get()))
+                print(current_date)
+                try:
+                    work_day = self.employees.get(
+                        self.current_employee).get_day(current_date)
+                    print(work_day)
+                    day.var_start_time.set(work_day.start_time)
+                    day.var_end_time.set(work_day.end_time)
+                    day.var_break_time.set(work_day.break_time)
+                    day.var_total_time.set(work_day.end_time - work_day.start_time)
+                except Exception:
+                    pass
 
     def add_employee(self, employee_id):
         self.employees[employee_id] = WorkTimeEmployee(employee_id)
