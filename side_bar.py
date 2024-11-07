@@ -41,7 +41,7 @@ class SideBar(tk.Frame):
 
         button_request_vacation = tk.Button(self, text="Request Vacation")
         button_log_working_time = tk.Button(self, text="Start Workday")
-        button_log_break_time = tk.Button(self, text="Start BreaK")
+        button_log_break_time = tk.Button(self, text="Start Break")
 
         self.info_panel.pack(fill=tk.X, pady=5)
         button_request_vacation.pack(side="top", fill=tk.X, pady=5)
