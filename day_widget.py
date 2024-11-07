@@ -11,6 +11,8 @@ to display the user's current work status.
 """
 import tkinter as tk
 
+import gui_constants
+
 
 class DayWidget(tk.Frame):
     """
@@ -83,13 +85,11 @@ class DayWidget(tk.Frame):
 
         self.config(borderwidth=1, relief='solid')
 
-        no_time_data = "--:--"
-
         self.var_day = tk.StringVar(value=f"{0:02}")
-        self.var_start_time = tk.StringVar(value=no_time_data)
-        self.var_end_time = tk.StringVar(value=no_time_data)
-        self.var_break_time = tk.StringVar(value=no_time_data)
-        self.var_total_time = tk.StringVar(value=no_time_data)
+        self.var_start_time = tk.StringVar(value=gui_constants.NO_TIME_DATA)
+        self.var_end_time = tk.StringVar(value=gui_constants.NO_TIME_DATA)
+        self.var_break_time = tk.StringVar(value=gui_constants.NO_TIME_DATA)
+        self.var_total_time = tk.StringVar(value=gui_constants.NO_TIME_DATA)
 
         # self.rowconfigure(6)
         # self.columnconfigure(4, uniform='z')
