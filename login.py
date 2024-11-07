@@ -51,5 +51,5 @@ entry_password.pack()
 button_login = tk.Button(root, text="Login", command=login)
 button_login.pack(pady=10)
 
-# GUI ausführen
+
 root.mainloop()
