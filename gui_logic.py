@@ -35,6 +35,7 @@ from datetime import date
 
 from calendar_widget import CalendarWidget
 from side_bar import SideBar
+from data_model import WorkTimeEmployee
 import gui_constants
 
 
@@ -87,9 +88,16 @@ class Timesheet:
         self.side_bar.pack(side="left", expand=True, fill=tk.BOTH)
         self.calendar.pack(side="top", expand=True, fill=tk.Y)
 
+        self.employees = {}
+
         self.select_month()
 
+        self.add_employee("default")
+
         self.root.mainloop()
+
+    def add_employee(self, employee_id):
+        self.employees[employee_id] = WorkTimeEmployee(employee_id)
 
     def get_month_days(self, date_object):
         """

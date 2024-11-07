@@ -98,6 +98,8 @@ class WorkTimeEmployee():
 
         if os.path.isfile(self.file_path):
             self.load_working_days()
+        else:
+            self.save_working_days()
 
     def create_day(self, date_object=date.today()):
         """
