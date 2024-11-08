@@ -41,10 +41,10 @@ class CalendarApp:
         # Window
         self.master = master
         # Window name
-        self.master.title("SCT Timesheet Calendar")
+        self.master.title("STC Timesheet Calendar")
 
         # Heading
-        self.name = tk.Label(master, text="SCT Timesheet",
+        self.name = tk.Label(master, text="STC Timesheet",
                              font=('Helvetica', 32, "bold"))
         self.name.pack(expand=1, fill='both', pady=16)
 

@@ -3,7 +3,7 @@
 Created on Wed Nov  6 21:49:00 2024
 
 This module provides the main graphical user interface (GUI) logic for the
-SCT time management application.
+STC time management application.
 It creates a `Timesheet` application window containing a calendar and sidebar,
 allowing users to navigate and interact with their monthly timesheets.
 
@@ -36,6 +36,7 @@ from datetime import date
 from calendar_widget import CalendarWidget
 from side_bar import SideBar
 from data_model import WorkTimeEmployee
+from datetime_functions import DatetimeFunctions as dtf
 import gui_constants
 
 
@@ -56,79 +57,161 @@ class Timesheet:
         The main calendar widget for date navigation and time tracking.
     side_bar : SideBar
         A sidebar widget for additional options and data display.
+    employees : dict
+        Dictionary storing `WorkTimeEmployee` instances, keyed by employee ID.
+    current_employee : WorkTimeEmployee
+        The employee currently selected and whose data is displayed.
 
     Methods
     -------
     __init__()
         Initializes the timesheet application with the calendar and sidebar.
+    on_closing()
+        Saves the working days of all employees and closes the application.
+    print_day(day)
+        Prints start time, end time, break time, date, and state of a given
+        working day if debugging is enabled.
+    update_info_panel()
+        Updates the flex- and vacation day information in the sidebar.
+    update_from_db()
+        Loads and updates calendar entries from the data model.
+    add_employee(employee_id)
+        Adds an employee with a given ID to the application.
     get_month_days(date_object)
-        Returns a flat list of day numbers for the specified month,
-        with padding days to form a complete 6x7 grid.
+        Returns a list of day numbers for the specified month,
+        padded to create a complete 6x7 grid.
     change_color(color, container=None)
         Recursively changes the background color of a widget and its children.
+    hide_empty_row()
+        Hides the last row of the calendar if the month has fewer than 36 days.
     select_month(date_object=date.today())
-        Updates the calendar display to reflect the selected
-        month and highlights the current date if applicable.
+        Updates the calendar to reflect the selected month and
+        highlights the current date if within the displayed month.
+    log_work_time()
+        Logs the start or end time of the current workday and updates the display.
+    log_break_time()
+        Logs the start or end time of a break period and updates the display.
+    update_buttons()
+        Updates button labels in the sidebar based on the employee’s work state.
     """
 
     def __init__(self):
         """
-        Initializes the Timesheet application
-        window with a calendar and sidebar.
-        Sets the window dimensions, initializes the
-        selected date, and starts the main loop.
+        Initializes the Timesheet application window with a calendar and sidebar.
+        Sets window dimensions, initializes selected date, adds a default employee,
+        and starts the main loop.
         """
         self.selected_date = date.today()
         self.root = tk.Tk()
+        self.root.title("STC Timesheet Calendar")
         self.root.geometry('1100x730')
+        self.root.protocol("WM_DELETE_WINDOW", lambda: self.on_closing())
 
         self.calendar = CalendarWidget(self.root, self)
-        self.side_bar = SideBar(self.root)
+        self.side_bar = SideBar(self.root, self)
 
         self.side_bar.pack(side="left", expand=True, fill=tk.BOTH)
         self.calendar.pack(side="top", expand=True, fill=tk.Y)
 
         self.employees = {}
-        self.current_employee = "default"
-        self.add_employee(self.current_employee)
+        self.add_employee("default")
+        self.current_employee = self.employees.get("default")
 
         self.select_month()
-        self.update_from_db()
+
+        day = self.current_employee.get_day(date.today())
+        self.print_day(day)
+
         self.root.mainloop()
 
+    def on_closing(self):
+        """
+        Saves all employee working day data and closes the application.
+        """
+        for employee in self.employees.values():
+            employee.save_working_days()
+        self.root.destroy()
+
+    def print_day(self, day):
+        """
+        Prints the details of a given working day if debugging is enabled.
+
+        Parameters
+        ----------
+        day : WorkingDay
+            The working day object containing the day’s information.
+        """
+        if gui_constants.DEBUG:
+            print(day.start_time)
+            print(day.end_time)
+            print(day.break_time)
+            print(day.date)
+            print(day.state)
+
+    def update_info_panel(self):
+        """
+        Updates the flex-time and vacation day information in the sidebar.
+        """
+        panel = self.side_bar.info_panel
+        panel.var_flex_time.set(dtf.time_to_string(
+            self, self.current_employee.get_flex_time(), unsigned=False))
+
+        panel.var_vacation_days.set(self.current_employee.amount_vacation_days)
+        panel.var_old_vacation_days.set(
+            self.current_employee.amount_old_vacation_days)
+
     def update_from_db(self):
-        self.employees.get(self.current_employee).load_working_days()
+        """
+        Loads and updates the calendar from
+        the current employee’s data model.
+        For every day without entry, the fields
+        are filled with gui_constants.NO_TIME_DATA.
+        """
+        self.current_employee.save_working_days()
+        self.current_employee.load_working_days()
         for day in self.calendar.content.days:
-            number_of_days = calendar.monthrange(self.selected_date.year, self.selected_date.month)[1]
+            number_of_days = calendar.monthrange(self.selected_date.year,
+                                                 self.selected_date.month)[1]
 
             if (day.var_day.get() != '' and
                     int(day.var_day.get()) in range(1, number_of_days+1)):
                 current_date = self.selected_date.replace(
                     day=int(day.var_day.get()))
-                print(current_date)
                 try:
-                    work_day = self.employees.get(
-                        self.current_employee).get_day(current_date)
-                    print(work_day)
-                    day.var_start_time.set(work_day.start_time)
-                    day.var_end_time.set(work_day.end_time)
-                    day.var_break_time.set(work_day.break_time)
-                    day.var_total_time.set(work_day.end_time - work_day.start_time)
+                    work_day = self.current_employee.get_day(current_date)
+                    day.set_start_time(work_day.start_time)
+                    day.set_end_time(work_day.end_time)
+                    day.set_break_time(work_day.break_time)
+                    day.set_total_time(work_day.get_work_time())
                 except Exception:
-                    pass
+                    print("Error at day:" + day.var_day.get())
+
+        self.update_info_panel()
+        self.update_buttons()
 
     def add_employee(self, employee_id):
-        self.employees[employee_id] = WorkTimeEmployee(employee_id)
+        """
+        Adds an employee with the specified ID to the application.
+
+        Parameters
+        ----------
+        employee_id : str
+            Unique ID for the new employee.
+        """
+        if employee_id not in self.employees:
+            self.employees[employee_id] = WorkTimeEmployee(employee_id)
+        else:
+            print("Employee with id {e_id}· already in database.".format(
+                e_id=employee_id))
 
     def get_month_days(self, date_object):
         """
-        Generates a list of days for a given month with padding
-        to complete a 6x7 grid.
+        Returns a list of day numbers for a specified month, padded to a 6x7 grid.
 
         Parameters
         ----------
         date_object : date
-            The date object representing the month to retrieve days for.
+            The date object representing the month.
 
         Returns
         -------
@@ -152,7 +235,7 @@ class Timesheet:
             The color to apply to the widget background.
         container : widget, optional
             The widget container whose background color will be changed.
-            If not provided, defaults to the root widget.
+            Defaults to the root widget.
         """
         if container is None:
             container = self.root  # set to root window
@@ -164,6 +247,9 @@ class Timesheet:
                 self.change_color(color, child)
 
     def hide_empty_row(self):
+        """
+        Conditionally hides the last row of the calendar if it contains only empty days.
+        """
         month_days_flat = sum(calendar.monthcalendar(
             self.selected_date.year, self.selected_date.month), [])
         if len(month_days_flat) <= 35:
@@ -175,7 +261,7 @@ class Timesheet:
 
     def select_month(self, date_object=date.today()):
         """
-        Updates the calendar to display the days of the selected month.
+        Updates the calendar to show the selected month.
 
         Highlights the current day if it falls within the displayed month.
 
@@ -210,6 +296,65 @@ class Timesheet:
             else:
                 self.change_color('SystemButtonFace', day)
         self.hide_empty_row()
+        self.update_from_db()
+
+    def log_work_time(self):
+        """
+        Logs the start or end time of a workday and updates the display.
+        """
+        today = self.current_employee.create_day()
+        self.print_day(today)
+        if today.start_time is None:
+            today.start_time = dtf.get_current_time(self)
+        else:
+            if self.current_employee.on_break is not None:
+                self.log_break_time()
+            today.end_time = dtf.get_current_time(self)
+
+        self.update_from_db()
+
+    def log_break_time(self):
+        """
+        Logs the start or end time of a break period and updates the display.
+
+        As long as the workday is not ended, an
+        arbitrary amount of breaks can be entered.
+        """
+        if self.current_employee.get_day().start_time is None:
+            print("You can't take a break before you start to work.")
+        elif self.current_employee.get_day().end_time is not None:
+            print("You can't take a break after you've finished work.")
+        elif self.current_employee.on_break is None:
+            self.current_employee.on_break = dtf.get_current_time(self)
+        else:
+            break_start = self.current_employee.on_break
+            break_end = dtf.get_current_time(self)
+            break_time = dtf.get_time_difference(self, break_start, break_end)
+            try:
+                self.current_employee.get_day().break_time += break_time
+            except TypeError:
+                self.current_employee.get_day().break_time = break_time
+
+            self.current_employee.on_break = None
+
+        self.update_from_db()
+
+    def update_buttons(self):
+        """
+        Updates button labels in the sidebar based on the current work state.
+        """
+        if self.current_employee.create_day().start_time is None:
+            button_label = "Start Workday"
+        elif self.current_employee.create_day().end_time is None:
+            button_label = "End Workday"
+        else:
+            button_label = "Update Endtime"
+        self.side_bar.button_log_working_time.config(text=button_label)
+
+        if self.current_employee.on_break is not None:
+            button_label = "End Break"
+        else:
+            button_label = "Start Break"
 
 
 # Testing GUI
