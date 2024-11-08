@@ -153,8 +153,7 @@ class DayWidget(tk.Frame):
         time_in_seconds : datetime.time
             The end time to display as datetime.time.
         """
-        time_string = self.time_to_string(time_in_seconds)
-        self.var_end_time.set(time_string)
+        self.var_end_time.set(self.get_verified_time_string(time_object))
 
     def set_break_time(self, time_in_seconds):
         """
@@ -165,8 +164,7 @@ class DayWidget(tk.Frame):
         time_in_seconds : int
             The break time in seconds to be displayed.
         """
-        time_string = self.time_to_string(time_in_seconds)
-        self.var_break_time.set(time_string)
+        self.var_break_time.set(dtf.time_to_string(self, time_in_seconds))
 
     def set_total_time(self, time_in_seconds):
         """
@@ -177,31 +175,5 @@ class DayWidget(tk.Frame):
         time_in_seconds : int
             The total working time in seconds to be displayed.
         """
-        time_string = self.time_to_string(time_in_seconds)
+        time_string = dtf.time_to_string(self, time_in_seconds)
         self.var_total_time.set(time_string)
-
-    def time_to_string(self, time=-1):
-        """
-        Converts time in seconds to a string formatted as "HH:MM".
-
-        Parameters
-        ----------
-        time : int, optional
-            The time in seconds to convert. Default is -1, which
-            returns "--:--" as any value outside of range(0, 24*60*60-1).
-
-        Returns
-        -------
-        str
-            The formatted time string.
-        """
-        time_string = "--:--"
-
-        if 0 <= time <= 24 * 60 * 60 - 1:
-            time = time // 60
-            minutes = time % 60
-            hours = time // 60
-
-            time_string = f"{hours:02}:{minutes:02}"
-
-        return time_string

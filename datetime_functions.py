@@ -6,6 +6,8 @@ Created on Tue Nov  5 15:04:48 2024
 """
 import datetime
 
+import gui_constants
+
 # ------------------------------------------------------------------------------
 
 
@@ -144,3 +146,57 @@ class DatetimeFunctions():
 
         delta = end_datetime - start_datetime
         return delta.total_seconds()
+
+    # ------------------------------------------------------------------------------
+
+    def time_to_string(self, time=None, unsigned=True):
+        """
+        Converts time in seconds to a string formatted as "HH:MM".
+
+        Parameters
+        ----------
+        time : int, optional
+            The time in seconds to convert. Default is None, which
+            returns "--:--".
+        unsigned : bool
+            Wether the returned string shall contain the sign of the time.
+
+        Returns
+        -------
+        str
+            The formatted time string.
+        """
+        time_string = gui_constants.NO_TIME_DATA
+
+        if time is not None:
+            time = int(time // 60)
+            minutes = time % 60
+            hours = time // 60
+
+            if unsigned:
+                time_string = '{h:02d}:{m:02d}'.format(h=hours, m=minutes)
+            else:
+                time_string = '{h:+03d}:{m:02d}'.format(h=hours, m=minutes)
+        return time_string
+
+    # ------------------------------------------------------------------------------
+
+    def time_object_to_string(self, time_object=None):
+        """
+        Converts a datetime.time object to a string
+        with the format 'hh:mm'
+
+        Parameters
+        ----------
+        time_object : datetime.time, optional
+            Datetime.time object. The default is None.
+
+        Returns
+        -------
+        time_object : str or None
+            Time as formatted string. Is None if input is None.
+
+        """
+        if time_object is not None:
+            time_object = time_object.strftime("%H:%M")
+        return time_object
