@@ -10,6 +10,8 @@ a sidebar for managing flex time and vacation requests, and information panels
 to display the user's current work status.
 """
 import tkinter as tk
+import datetime as dt
+from datetime_functions import DatetimeFunctions as dtf
 
 import gui_constants
 
@@ -17,7 +19,7 @@ import gui_constants
 class DayWidget(tk.Frame):
     """
     A class used to represent a working day element in the
-    SCT time management GUI.
+    STC time management GUI.
 
     --------------------------------
     |day                           |
@@ -54,10 +56,10 @@ class DayWidget(tk.Frame):
         Sets the day number displayed in the widget.
 
     set_start_time(time_in_seconds)
-        Sets the start time in the widget using time in seconds.
+        Sets the start time in the widget using datetime.time.
 
     set_end_time(time_in_seconds)
-        Sets the end time in the widget using time in seconds.
+        Sets the end time in the widget using datetime.time.
 
     set_break_time(time_in_seconds)
         Sets the break time in the widget using time in seconds.
@@ -91,37 +93,23 @@ class DayWidget(tk.Frame):
         self.var_break_time = tk.StringVar(value=gui_constants.NO_TIME_DATA)
         self.var_total_time = tk.StringVar(value=gui_constants.NO_TIME_DATA)
 
-        # self.rowconfigure(6)
-        # self.columnconfigure(4, uniform='z')
-
         # Day number
         tk.Label(self, textvariable=self.var_day, border=1,
                  relief='solid', width=2).grid(sticky="nw", row=0, column=0)
 
         # Start and end of working time
-# =============================================================================
-#         tk.Label(self, textvariable=self.var_start_time, border=1,
-#                  relief='solid').grid(row=2, column=1, padx=5, pady=5)
-#         tk.Label(self, textvariable=self.var_end_time, border=1,
-#                  relief='solid').grid(row=3, column=1, padx=5, pady=5)
-# =============================================================================
-        tk.Entry(self, width=5, textvariable=self.var_start_time).grid(
+        self.start_entry = tk.Entry(self, width=5, textvariable=self.var_start_time, justify='center').grid(
             row=2, column=1)
-        tk.Entry(self, width=5, textvariable=self.var_end_time).grid(
+        self.end_entry = tk.Entry(self, width=5, textvariable=self.var_end_time, justify='center').grid(
             row=3, column=1)
 
         # Break time
-# =============================================================================
-#         tk.Label(self, textvariable=self.var_break_time, border=1,
-#                  relief='solid', pady=16).grid(row=2, rowspan=3, column=3,
-#                                                padx=5, pady=5)
-# =============================================================================
-        tk.Entry(self, width=5, textvariable=self.var_break_time).grid(
+        self.break_entry = tk.Entry(self, width=5, textvariable=self.var_break_time, justify='center').grid(
             row=2, rowspan=3, column=3)
 
         # Total working time
         tk.Label(self, textvariable=self.var_total_time, border=1,
-                 relief='solid', padx=21).grid(row=5, column=1, columnspan=3,
+                 relief='solid', width=10).grid(row=5, column=1, columnspan=3,
                                                padx=5, pady=5)
 
         # Spacer
@@ -138,26 +126,32 @@ class DayWidget(tk.Frame):
         """
         self.var_day.set(f"{day:02}")
 
-    def set_start_time(self, time_in_seconds):
+    def get_verified_time_string(self, time):
+        if time is None:
+            time_string = gui_constants.NO_TIME_DATA
+        else:
+            time_string = time.strftime(gui_constants.TIME_FORMAT)
+        return time_string
+
+    def set_start_time(self, time_object):
         """
         Sets the start time in this widget.
 
         Parameters
         ----------
-        time_in_seconds : int
-            The start time in seconds to be displayed.
+        time_in_seconds : datetime.time
+            The start time to display as datetime.time.
         """
-        time_string = self.time_to_string(time_in_seconds)
-        self.var_start_time.set(time_string)
+        self.var_start_time.set(self.get_verified_time_string(time_object))
 
-    def set_end_time(self, time_in_seconds):
+    def set_end_time(self, time_object):
         """
         Sets the end time in this widget.
 
         Parameters
         ----------
-        time_in_seconds : int
-            The end time in seconds to be displayed.
+        time_in_seconds : datetime.time
+            The end time to display as datetime.time.
         """
         time_string = self.time_to_string(time_in_seconds)
         self.var_end_time.set(time_string)
