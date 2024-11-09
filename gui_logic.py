@@ -32,6 +32,8 @@ select_month(date_object=date.today())
 import tkinter as tk
 import calendar
 from datetime import date
+import os.path
+import csv
 
 from calendar_widget import CalendarWidget
 from side_bar import SideBar
@@ -129,6 +131,23 @@ class Timesheet:
         self.root.geometry('1100x730')
         self.root.protocol("WM_DELETE_WINDOW", lambda: self.on_closing())
 
+        try:
+            os.mkdir(gui_constants.DATA_PATH)
+        except FileExistsError:
+            print("Tried to create '~/data' folder but it exists already.")
+        except OSError as error:
+            print(error)
+
+        self.employees = {}
+        self.file_path_employees = os.path.join(gui_constants.DATA_PATH, "employees.csv")
+        if os.path.isfile(self.file_path_employees):
+            self.load_employees()
+        else:
+            self.save_employees()
+        self.add_employee("default")
+        self.current_employee = self.employees.get("default")
+
+
         self.calendar = CalendarWidget(self.root, self)
         self.side_bar = SideBar(self.root, self)
 
@@ -154,15 +173,51 @@ class Timesheet:
 
         self.create_timesheet_window()
 
+    def load_employees(self):
+        """
+        Loads the list of employees from disk
+        """
+        if gui_constants.USE_DATABASE:
+            print("Accessing database...")
+        else:
+            try:
+                with open(self.file_path_employees, 'r') as csvfile:
+                    reader = csv.DictReader(csvfile)
+                    for row in reader:
+                        self.add_employee(row['Employee ID'])
+            except Exception as e:
+                print("Error", f"Failed to load employees: {e}")
+
+    def save_employees(self):
+        """
+        Save the list of employees to disk
+        """
+        if gui_constants.USE_DATABASE:
+            print("Accessing database...")
+        else:
+            with open(self.file_path_employees, 'w', newline='') as csvfile:
+                writer = csv.DictWriter(csvfile, fieldnames=['Employee ID'])
+                writer.writeheader()
+                for employee_id in self.employees.keys():
+                    writer.writerow({'Employee ID': employee_id})
+
+    def store_all_inputs(self):
+        for day in self.calendar.content.days:
+            self.store_input_data(day)
+        self.current_employee.save_working_days()
+
     def on_closing(self):
         """
         Saves all employee working day data and closes the application.
         """
         for employee in self.employees.values():
+            self.current_employee = employee
+            self.store_all_inputs()
             employee.save_working_days()
+        self.save_employees()
         self.root.destroy()
 
-    def print_day(self, day):
+    def print_day(self, day, always_enabled=False):
         """
         Prints the details of a given working day if debugging is enabled.
 
@@ -171,11 +226,11 @@ class Timesheet:
         day : WorkingDay
             The working day object containing the day’s information.
         """
-        if gui_constants.DEBUG:
+        if gui_constants.DEBUG or always_enabled:
+            print(day.date, ":")
             print(day.start_time)
             print(day.end_time)
             print(day.break_time)
-            print(day.date)
             print(day.state)
 
     def update_info_panel(self):
@@ -190,6 +245,16 @@ class Timesheet:
         panel.var_old_vacation_days.set(
             self.current_employee.amount_old_vacation_days)
 
+    def purge_inputs(self):
+        """
+        Removes all data from all input fields.
+        """
+        for day in self.calendar.content.days:
+            day.set_start_time(None)
+            day.set_end_time(None)
+            day.set_break_time(None)
+            day.set_total_time(None)
+
     def update_from_db(self):
         """
         Loads and updates the calendar from
@@ -197,27 +262,48 @@ class Timesheet:
         For every day without entry, the fields
         are filled with gui_constants.NO_TIME_DATA.
         """
-        self.current_employee.save_working_days()
         self.current_employee.load_working_days()
         for day in self.calendar.content.days:
-            number_of_days = calendar.monthrange(self.selected_date.year,
-                                                 self.selected_date.month)[1]
-
-            if (day.var_day.get() != '' and
-                    int(day.var_day.get()) in range(1, number_of_days+1)):
-                current_date = self.selected_date.replace(
-                    day=int(day.var_day.get()))
+            current_date = self.get_date_of_day(day)
+            if current_date is not None:
                 try:
                     work_day = self.current_employee.get_day(current_date)
                     day.set_start_time(work_day.start_time)
                     day.set_end_time(work_day.end_time)
                     day.set_break_time(work_day.break_time)
                     day.set_total_time(work_day.get_work_time())
+                    self.print_day(work_day)
                 except Exception:
-                    print("Error at day:" + day.var_day.get())
+                    if gui_constants.DEBUG:
+                        print("Error at day:" + day.var_day.get())
 
         self.update_info_panel()
         self.update_buttons()
+
+    def get_date_of_day(self, day):
+        """
+        Returns the date currently displayed by the specified DayWidget.
+
+        Parameters
+        ----------
+        day : DayWidget
+            The DayWidget display.
+
+        Returns
+        -------
+        current_date : datetime.date
+            The displayed date.
+
+        """
+        number_of_days = calendar.monthrange(self.selected_date.year,
+                                             self.selected_date.month)[1]
+        current_date = None
+        if (day.var_day.get() != '' and
+                int(day.var_day.get()) in range(1, number_of_days+1)):
+            current_date = self.selected_date.replace(
+                day=int(day.var_day.get()))
+
+        return current_date
 
     def add_employee(self, employee_id):
         """
@@ -230,8 +316,9 @@ class Timesheet:
         """
         if employee_id not in self.employees:
             self.employees[employee_id] = WorkTimeEmployee(employee_id)
+            self.save_employees()
         else:
-            print("Employee with id {e_id} already in database.".format(
+            print("Employee with id '{e_id}' already in database.".format(
                 e_id=employee_id))
 
     def get_month_days(self, date_object):
@@ -301,6 +388,8 @@ class Timesheet:
             The date object representing the month to display.
             Defaults to today.
         """
+        self.store_all_inputs()
+        self.purge_inputs()
         if date_object == "self.selected_date":
             date_object = self.selected_date
         else:
@@ -318,9 +407,7 @@ class Timesheet:
                 day.var_day.set('')
                 self.change_color(gui_constants.DISABLED_COLOR, day)
 
-            elif (self.selected_date.year == date.today().year and
-                  self.selected_date.month == date.today().month and
-                    month_day == date.today().day):
+            elif (self.selected_date.replace(day=month_day) == date.today()):
                 self.change_color(gui_constants.HIGHLIGHT_COLOR, day)
 
             else:
@@ -332,6 +419,7 @@ class Timesheet:
         """
         Logs the start or end time of a workday and updates the display.
         """
+        self.store_all_inputs()
         today = self.current_employee.create_day()
         self.print_day(today)
         if today.start_time is None:
@@ -341,6 +429,7 @@ class Timesheet:
                 self.log_break_time()
             today.end_time = dtf.get_current_time(self)
 
+        self.current_employee.save_working_days()
         self.update_from_db()
 
     def log_break_time(self):
@@ -350,6 +439,7 @@ class Timesheet:
         As long as the workday is not ended, an
         arbitrary amount of breaks can be entered.
         """
+        self.store_all_inputs()
         if self.current_employee.get_day().start_time is None:
             print("You can't take a break before you start to work.")
         elif self.current_employee.get_day().end_time is not None:
@@ -367,6 +457,7 @@ class Timesheet:
 
             self.current_employee.on_break = None
 
+        self.current_employee.save_working_days()
         self.update_from_db()
 
     def update_buttons(self):
@@ -386,7 +477,50 @@ class Timesheet:
         else:
             button_label = "Start Break"
 
+    def store_input_data(self, day):
+        """
+        Stores all present data from the given days input
+        fields in the internal data model
+        Parameters
+        ----------
+        day : DayWidget
+            The day widget which data to store.
+        """
+        current_date = self.get_date_of_day(day)
+        if current_date is not None:
+            try:
+                work_day = self.current_employee.create_day(current_date)
+                try:
+                    work_day.start_time = dtf.convert_string_to_time(self, day.var_start_time.get())
+                    if gui_constants.DEBUG:
+                        print(work_day.start_time)
+                except Exception:
+                    if gui_constants.DEBUG:
+                        print("No data in start_time")
+                try:
+                    work_day.end_time = dtf.convert_string_to_time(self, day.var_end_time.get())
+                    if gui_constants.DEBUG:
+                        print(work_day.end_time)
+                except Exception:
+                    if gui_constants.DEBUG:
+                        print("No data in end_time")
+                try:
+                    break_time = dtf.get_time_difference(dtf(), '0:00', day.var_break_time.get())
+                    if break_time == gui_constants.NO_TIME_DATA:
+                        break_time = ''
+                    work_day.break_time = break_time
+                    if gui_constants.DEBUG:
+                        print(work_day.break_time)
+                except Exception as e:
+                    if gui_constants.DEBUG:
+                        print("No data in break_time", e)
+            except AttributeError:
+                pass
+
+            self.current_employee.save_working_days()
+
 
 # Testing GUI
 if __name__ == "__main__":
+    #gui_constants.DEBUG = True
     app = Timesheet()

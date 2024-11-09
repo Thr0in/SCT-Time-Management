@@ -5,6 +5,7 @@ Created on Tue Nov  5 15:04:48 2024
 @author: jnath
 """
 import datetime
+import numpy as np
 
 import gui_constants
 
@@ -99,16 +100,14 @@ class DatetimeFunctions():
                 time = self.convert_string_to_time(time)
             except ValueError:
                 raise ValueError(
-                    "Time is a string and cannot be converted to datetime. \
-                        Therefore Date and time cannot be merged to datetime.")
+                    "Time is a string and cannot be converted to datetime. Therefore Date and time cannot be merged to datetime.")
 
         if isinstance(date, str):
             try:
                 date = self.convert_string_to_date(date)
             except ValueError:
                 raise ValueError(
-                    "Date is a string and cannot be converted to datetime. \
-                        Therefore Date and time cannot be merged to datetime.")
+                    "Date is a string and cannot be converted to datetime. Therefore Date and time cannot be merged to datetime.")
 
         # Ensure both date and time are date/time objects of datetime
         if isinstance(date, datetime.date) and isinstance(time, datetime.time):
@@ -169,14 +168,20 @@ class DatetimeFunctions():
         time_string = gui_constants.NO_TIME_DATA
 
         if time is not None:
-            time = int(time // 60)
+            sign = np.sign(time)
+            time = np.abs(time)
+
+            time = time // 60
             minutes = time % 60
             hours = time // 60
 
-            if unsigned:
-                time_string = '{h:02d}:{m:02d}'.format(h=hours, m=minutes)
-            else:
-                time_string = '{h:+03d}:{m:02d}'.format(h=hours, m=minutes)
+            time_string = ''
+            if not unsigned:
+                if sign < 0:
+                    time_string = '- '
+                else:
+                    time_string = '+ '
+            time_string += '{h:02.0f}:{m:02.0f}'.format(h=hours, m=minutes)
         return time_string
 
     # ------------------------------------------------------------------------------
