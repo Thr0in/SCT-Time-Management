@@ -1,6 +1,3 @@
-import os.path
-
-
 # Data
 USE_DATABASE = False
 DAILY_WORKING_HOURS = 8
@@ -14,8 +11,9 @@ LARGE = ('TkDefaultFont', 12, 'bold')
 EXTRA_LARGE = ('TkDefaultFont', 32, 'bold')
 
 # Colors
-HIGHLIGHT_COLOR = 'azure3'
-DISABLED_COLOR = 'lightgray'
+HIGHLIGHT_COLOR = 'slategray1'  # 'lightblue'
+DISABLED_COLOR = 'gray60'
+DEFAULT_COLOR = 'SystemButtonFace'
 
 DEBUG = False
 AUTO_LOGIN = False
