@@ -28,6 +28,7 @@ When used in the main application, it should be embedded in the parent GUI.
 
 import tkinter as tk
 from tkinter import messagebox
+import os.path
 
 import gui_constants
 
@@ -78,6 +79,7 @@ class LoginFrame(tk.Frame):
         super().__init__(master=parent)
 
         self.main = main
+        self.file_path_users = gui_constants.DATA_PATH
 
         self.label_title = tk.Label(
             self, text="Bitte einloggen", font=("Arial", 14))
@@ -111,7 +113,7 @@ class LoginFrame(tk.Frame):
         username = self.__entry_username.get()
         password = self.__entry_password.get()
 
-        with open("userdata.txt", "r") as file:
+        with open(os.path.join(self.file_path_users, "userdata.txt"), "r") as file:
             users = file.readlines()
 
         for user in users:
