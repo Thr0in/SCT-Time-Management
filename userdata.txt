@@ -1,3 +1,4 @@
 Mitarbeiter,password123,Mitarbeiter
-SuperViser,secure456,SuperViser
+SuperVisor,secure456,SuperVisor
 Chef,strong789,Chef
+test,test,Admin

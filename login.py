@@ -111,7 +111,7 @@ class LoginFrame(tk.Frame):
         username = self.__entry_username.get()
         password = self.__entry_password.get()
 
-        with open("userdaten.txt", "r") as file:
+        with open("userdata.txt", "r") as file:
             users = file.readlines()
 
         for user in users:
