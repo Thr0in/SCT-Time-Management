@@ -41,6 +41,8 @@ class SideBar(tk.Frame):
 
         self.info_panel = InfoPanel(self)
 
+        self.button_update = tk.Button(
+            self, text='Update Timesheet', command=lambda: self.update())
         self.button_request_vacation = tk.Button(self, text="Request Vacation")
         self.button_log_working_time = tk.Button(
             self, text="Start Workday", command=lambda: self.log_time())
@@ -48,6 +50,7 @@ class SideBar(tk.Frame):
             self, text="Start Break", command=lambda: self.log_break())
 
         self.info_panel.pack(fill=tk.X, pady=5)
+        self.button_update.pack(side="top", fill=tk.X, pady=5)
         self.button_request_vacation.pack(side="top", fill=tk.X, pady=5)
         self.button_log_break_time.pack(side="bottom", fill=tk.X, pady=5)
         self.button_log_working_time.pack(side="bottom", fill=tk.X, pady=5)
@@ -63,6 +66,13 @@ class SideBar(tk.Frame):
         Callback method for break time logging button.
         """
         self.main.log_break_time()
+
+    def update(self):
+        """
+        Callback method for update button.
+        """
+        self.focus_set()
+        self.main.update_info_panel()
 
 
 class InfoPanel(tk.Frame):
