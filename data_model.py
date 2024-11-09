@@ -62,13 +62,39 @@ class WorkingDay():
 
         """
         work_time = None
-        if self.start_time is not None and self.end_time is not None:
+        #if self.start_time is not None and self.end_time is not None:
+        try:
             work_time = dtf.get_time_difference(
                 self, self.start_time, self.end_time)
 
             if self.break_time is not None:
                 work_time -= self.break_time
+        except Exception as e:
+            if gui_constants.DEBUG:
+                print("An error occured while calculating worktime for day {:%Y-%m-%d}: ".format(self.date), e)
+            pass
         return work_time
+
+    def has_entry(self):
+        """
+        Checks wether this day has any data stored besides its date.
+
+        Returns
+        -------
+        has_entry : bool
+            True if this day contains data.
+
+        """
+        has_entry = False
+        if self.start_time is not None:
+            has_entry = True
+        if self.end_time is not None:
+            has_entry = True
+        if self.break_time is not None:
+            has_entry = True
+        if self.state != "default":
+            has_entry = True
+        return has_entry
 
 
 class WorkTimeEmployee():
@@ -116,7 +142,7 @@ class WorkTimeEmployee():
             The unique ID of the employee (default is "default").
         """
         self.employee_id = employee_id
-        self.file_path = self.employee_id + ".csv"
+        self.file_path = os.path.join(gui_constants.DATA_PATH, self.employee_id + ".csv")
 
         self.working_days = {}
         self.amount_vacation_days = 30
@@ -192,12 +218,12 @@ class WorkTimeEmployee():
         flex_time = 0
 
         for day in self.working_days.values():
-            flex_time += float(day.get_work_time() or 0)
+            if day.has_entry():
+                flex_time += float(day.get_work_time() or 0)
 
 # Deduct expected daily working hours if the day is not "sick" or "vacation"
-            if day.state not in ("sick", "vacation"):
-                flex_time -= (gui_constants.DAILY_WORKING_HOURS * 3600)
-
+                if day.state not in ("sick", "vacation"):
+                    flex_time -= (gui_constants.DAILY_WORKING_HOURS * 3600.0)
         return flex_time
 
     def load_working_days(self):
@@ -244,13 +270,14 @@ class WorkTimeEmployee():
 
                 writer.writeheader()
                 for date_string, day in self.working_days.items():
-                    writer.writerow({
-                        'Date': date_string,
-                        'Start Time': dtf.time_object_to_string(self, day.start_time),
-                        'End Time': dtf.time_object_to_string(self, day.end_time),
-                        'Break Time': day.break_time,
-                        'State': day.state
-                    })
+                    if day.has_entry():
+                        writer.writerow({
+                            'Date': date_string,
+                            'Start Time': dtf.time_object_to_string(self, day.start_time),
+                            'End Time': dtf.time_object_to_string(self, day.end_time),
+                            'Break Time': day.break_time,
+                            'State': day.state
+                        })
 
 
 # Testing the data model
