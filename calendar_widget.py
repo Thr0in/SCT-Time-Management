@@ -53,6 +53,7 @@ class CalendarHeader(tk.Frame):
         updating the main calendar widget.
         """
         main = self.master.main
+        main.store_all_inputs()
         main.select_month(main.selected_date + relativedelta(months=1))
 
     def previous_month(self):

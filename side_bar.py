@@ -10,7 +10,6 @@ and vacation requests, and information panels to display the user's
 current work status.
 """
 import tkinter as tk
-from tkinter import font
 
 import gui_constants
 
@@ -96,13 +95,15 @@ class InfoPanel(tk.Frame):
 
         tk.Label(self, text="Flex-Time:",
                  font=gui_constants.BOLD).pack(anchor="nw")
-        tk.Label(self, textvariable=self.var_flex_time, anchor="w").pack(anchor="nw")
+        tk.Label(self, textvariable=self.var_flex_time,
+                 anchor="w").pack(anchor="nw")
 
         tk.Label(self, text="Remaining vacation days:",
                  font=gui_constants.BOLD).pack(anchor="nw")
-        tk.Label(self, textvariable=self.var_vacation_days, anchor="w").pack(anchor="nw")
+        tk.Label(self, textvariable=self.var_vacation_days,
+                 anchor="w").pack(anchor="nw")
 
         tk.Label(self, text="Vacation from last year:",
                  font=gui_constants.BOLD).pack(anchor="nw")
-        tk.Label(
-            self, textvariable=self.var_old_vacation_days, anchor="w").pack(anchor="nw")
+        tk.Label(self, textvariable=self.var_old_vacation_days,
+                 anchor="w").pack(anchor="nw")

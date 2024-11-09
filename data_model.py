@@ -62,7 +62,7 @@ class WorkingDay():
 
         """
         work_time = None
-        #if self.start_time is not None and self.end_time is not None:
+        # if self.start_time is not None and self.end_time is not None:
         try:
             work_time = dtf.get_time_difference(
                 self, self.start_time, self.end_time)
@@ -71,7 +71,8 @@ class WorkingDay():
                 work_time -= self.break_time
         except Exception as e:
             if gui_constants.DEBUG:
-                print("An error occured while calculating worktime for day {:%Y-%m-%d}: ".format(self.date), e)
+                print(
+                    "An error occured while calculating worktime for day {:%Y-%m-%d}: ".format(self.date), e)
             pass
         return work_time
 
@@ -143,7 +144,8 @@ class WorkTimeEmployee():
         """
         self.employee_id = employee_id
         self.role = 'employee'
-        self.file_path = os.path.join(gui_constants.DATA_PATH, self.employee_id + ".csv")
+        self.file_path = os.path.join(
+            gui_constants.DATA_PATH, self.employee_id + ".csv")
 
         self.working_days = {}
         self.amount_vacation_days = 30
