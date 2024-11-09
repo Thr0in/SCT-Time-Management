@@ -111,8 +111,19 @@ class Timesheet:
         self.root.title("Login Screen")
         self.root.geometry("300x200")
 
+        try:
+            os.mkdir(gui_constants.DATA_PATH)
+        except FileExistsError:
+            print("Tried to create '~/data' folder but it exists already.")
+        except OSError as error:
+            print(error)
 
         self.employees = {}
+        self.file_path_employees = os.path.join(gui_constants.DATA_PATH, "employees.csv")
+        if os.path.isfile(self.file_path_employees):
+            self.load_employees()
+        else:
+            self.save_employees()
         self.add_employee("default")
         self.current_employee = self.employees.get("default")
 
@@ -130,23 +141,6 @@ class Timesheet:
         self.root.title("STC Timesheet Calendar")
         self.root.geometry('1100x730')
         self.root.protocol("WM_DELETE_WINDOW", lambda: self.on_closing())
-
-        try:
-            os.mkdir(gui_constants.DATA_PATH)
-        except FileExistsError:
-            print("Tried to create '~/data' folder but it exists already.")
-        except OSError as error:
-            print(error)
-
-        self.employees = {}
-        self.file_path_employees = os.path.join(gui_constants.DATA_PATH, "employees.csv")
-        if os.path.isfile(self.file_path_employees):
-            self.load_employees()
-        else:
-            self.save_employees()
-        self.add_employee("default")
-        self.current_employee = self.employees.get("default")
-
 
         self.calendar = CalendarWidget(self.root, self)
         self.side_bar = SideBar(self.root, self)
