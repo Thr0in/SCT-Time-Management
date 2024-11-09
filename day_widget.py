@@ -210,8 +210,8 @@ class DayWidget(tk.Frame):
             if field_input[-2] != ":":
                 self.store_input()
         except Exception:
-            if field_input == "--:--" or field_input == "":
-                self.store_input()
+            if field_input == '':
+                self.delete_input()
 
 # Regex: Every possible substring which still can lead to
 #        a valid time string by writing from left to right.
@@ -262,6 +262,9 @@ class DayWidget(tk.Frame):
                 is_valid = False
 
         return is_valid
+
+    def delete_input(self):
+        self.master.master.main.delete_input_data(self)
 
     def store_input(self):
         """

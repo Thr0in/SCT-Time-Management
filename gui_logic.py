@@ -550,10 +550,9 @@ class Timesheet:
                         print("No data in end_time")
 
                 try:
-                    break_time = dtf.get_time_difference(dtf(), '0:00', day.var_break_time.get())
-                    if break_time == gui_constants.NO_TIME_DATA:
-                        break_time = ''
-                    work_day.break_time = break_time
+                    break_time = dtf.convert_string_to_time(
+                        self, day.var_break_time.get())
+                    work_day.break_time = dtf.time_in_seconds(self, break_time)
                     if gui_constants.DEBUG:
                         print(work_day.break_time)
                 except Exception as e:
@@ -565,6 +564,32 @@ class Timesheet:
                 print(e)  # pass
 
             self.current_employee.save_working_days()
+
+    def delete_input_data(self, day):
+        """
+        Deletes all missing data in the given days input
+        fields from the internal data model
+        Parameters
+        ----------
+        day : DayWidget
+            The day widget which data to delete.
+        """
+        current_date = self.get_date_of_day(day)
+        if current_date is not None:
+            work_day = self.current_employee.create_day(current_date)
+            if day.var_start_time.get() in (gui_constants.NO_TIME_DATA, ''):
+                print(day.var_day.get(), 'start', day.var_start_time.get())
+                work_day.start_time = None
+
+            if day.var_end_time.get() in (gui_constants.NO_TIME_DATA, ''):
+                print(day.var_day.get(), 'end', day.var_end_time.get())
+                work_day.end_time = None
+
+            if day.var_break_time.get() in (gui_constants.NO_TIME_DATA, ''):
+                print(day.var_day.get(), 'break', day.var_break_time.get())
+                work_day.break_time = None
+
+            day.set_total_time(work_day.get_work_time())
             self.current_employee.save_working_days()
 
 
