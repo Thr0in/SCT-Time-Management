@@ -1,0 +1,3 @@
+Mitarbeiter,password123,Mitarbeiter
+SuperViser,secure456,SuperViser
+Chef,strong789,Chef
