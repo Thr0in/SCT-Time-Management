@@ -10,6 +10,9 @@ and vacation requests, and information panels to display the user's
 current work status.
 """
 import tkinter as tk
+from tkinter import font
+
+import gui_constants
 
 
 class SideBar(tk.Frame):
@@ -22,7 +25,7 @@ class SideBar(tk.Frame):
         Initializes the sidebar with buttons and an information panel.
     """
 
-    def __init__(self, parent):
+    def __init__(self, parent, main):
         """
         Constructs the SideBar with vacation and time logging buttons.
 
@@ -32,18 +35,35 @@ class SideBar(tk.Frame):
             The parent widget in which this sidebar will be placed.
         """
 
-        super().__init__(master=parent, bg="azure3", padx=20, pady=20)
+        super().__init__(master=parent, bg=gui_constants.HIGHLIGHT_COLOR,
+                         padx=20, pady=20)
+
+        self.main = main
 
         self.info_panel = InfoPanel(self)
 
-        button_request_vacation = tk.Button(self, text="Request Vacation")
-        button_log_working_time = tk.Button(self, text="Start Workday")
-        button_log_break_time = tk.Button(self, text="Start BreaK")
+        self.button_request_vacation = tk.Button(self, text="Request Vacation")
+        self.button_log_working_time = tk.Button(
+            self, text="Start Workday", command=lambda: self.log_time())
+        self.button_log_break_time = tk.Button(
+            self, text="Start Break", command=lambda: self.log_break())
 
         self.info_panel.pack(fill=tk.X, pady=5)
-        button_request_vacation.pack(side="top", fill=tk.X, pady=5)
-        button_log_break_time.pack(side="bottom", fill=tk.X, pady=5)
-        button_log_working_time.pack(side="bottom", fill=tk.X, pady=5)
+        self.button_request_vacation.pack(side="top", fill=tk.X, pady=5)
+        self.button_log_break_time.pack(side="bottom", fill=tk.X, pady=5)
+        self.button_log_working_time.pack(side="bottom", fill=tk.X, pady=5)
+
+    def log_time(self):
+        """
+        Callback method for work time logging button.
+        """
+        self.main.log_work_time()
+
+    def log_break(self):
+        """
+        Callback method for break time logging button.
+        """
+        self.main.log_break_time()
 
 
 class InfoPanel(tk.Frame):
@@ -74,12 +94,15 @@ class InfoPanel(tk.Frame):
         self.var_vacation_days = tk.StringVar(value=17)
         self.var_old_vacation_days = tk.StringVar(value=0)
 
-        tk.Label(self, text="Flex-Time:").pack(anchor="nw")
-        tk.Label(self, textvariable=self.var_flex_time).pack(anchor="nw")
+        tk.Label(self, text="Flex-Time:",
+                 font=gui_constants.BOLD).pack(anchor="nw")
+        tk.Label(self, textvariable=self.var_flex_time, anchor="w").pack(anchor="nw")
 
-        tk.Label(self, text="Remaining vacation days:").pack(anchor="nw")
-        tk.Label(self, textvariable=self.var_vacation_days).pack(anchor="nw")
+        tk.Label(self, text="Remaining vacation days:",
+                 font=gui_constants.BOLD).pack(anchor="nw")
+        tk.Label(self, textvariable=self.var_vacation_days, anchor="w").pack(anchor="nw")
 
-        tk.Label(self, text="Vacation from last year:").pack(anchor="nw")
+        tk.Label(self, text="Vacation from last year:",
+                 font=gui_constants.BOLD).pack(anchor="nw")
         tk.Label(
-            self, textvariable=self.var_old_vacation_days).pack(anchor="nw")
+            self, textvariable=self.var_old_vacation_days, anchor="w").pack(anchor="nw")

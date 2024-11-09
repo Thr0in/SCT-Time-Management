@@ -10,6 +10,11 @@ from calendar_widget import CalendarWidget
 from side_bar import SideBar
 
 
+"""
+
+Deprecated! Don't use!
+
+
 root = tk.Tk()
 root.geometry('1100x620')
 
@@ -25,3 +30,6 @@ calendar.content.days[0].set_break_time(2700)
 calendar.content.days[0].set_total_time(60600-30600-2700)
 
 root.mainloop()
+
+
+"""
