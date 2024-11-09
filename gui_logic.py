@@ -40,6 +40,7 @@ from side_bar import SideBar
 from data_model import WorkTimeEmployee
 from datetime_functions import DatetimeFunctions as dtf
 from login import LoginFrame
+from stc_header import STCHeader
 import gui_constants
 
 
@@ -107,6 +108,19 @@ class Timesheet:
         self.selected_date = date.today()
         self.root = tk.Tk()
 
+        self.root.title("Login Screen")
+        self.root.geometry("300x200")
+
+        self.create_login_window()
+
+        if gui_constants.AUTO_LOGIN:
+            self.login('test')
+
+        self.root.mainloop()
+
+    def create_login_window(self):
+        for widget in self.root.winfo_children():
+            widget.destroy()
 
         self.root.title("Login Screen")
         self.root.geometry("300x200")
@@ -130,7 +144,6 @@ class Timesheet:
         self.login_frame = LoginFrame(self.root, self)
         self.login_frame.pack(expand=True, fill=tk.BOTH)
 
-        self.root.mainloop()
 
     def create_timesheet_window(self):
         """
@@ -139,21 +152,26 @@ class Timesheet:
         self.login_frame.pack_forget()
 
         self.root.title("STC Timesheet Calendar")
-        self.root.geometry('1100x730')
+        self.root.geometry('1100x815')
         self.root.protocol("WM_DELETE_WINDOW", lambda: self.on_closing())
 
+        self.header = STCHeader(self.root, self)
         self.calendar = CalendarWidget(self.root, self)
         self.side_bar = SideBar(self.root, self)
 
-        self.side_bar.pack(side="left", expand=True, fill=tk.BOTH)
-        self.calendar.pack(side="top", expand=True, fill=tk.Y)
+        self.header.pack(side='top', fill=tk.X, pady=0)
+        self.side_bar.pack(side="left", anchor='nw', expand=True, fill=tk.BOTH)
+        self.calendar.pack(side="left", anchor='ne', expand=True, fill=tk.Y)
+
+        self.header.employee_name.set(self.current_employee.employee_id)
+        self.header.role.set('(' + self.current_employee.role + ')')
 
         self.select_month()
 
         day = self.current_employee.get_day(date.today())
         self.print_day(day)
 
-    def login(self, user):
+    def login(self, user, role='Employee'):
         """
         Logs in a user. Has to exist in userdata.txt
 
@@ -164,8 +182,16 @@ class Timesheet:
         """
         self.add_employee(user)
         self.current_employee = self.employees.get(user)
+        self.current_employee.role = role
 
         self.create_timesheet_window()
+
+    def logout(self):
+        self.store_all_inputs()
+        self.current_employee.save_working_days()
+        self.save_employees()
+
+        self.create_login_window()
 
     def load_employees(self):
         """

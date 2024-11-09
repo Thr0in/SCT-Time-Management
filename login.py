@@ -118,14 +118,13 @@ class LoginFrame(tk.Frame):
 
         for user in users:
             user_data = user.strip().split(",")
-            print(user_data)
             if len(user_data) == 3:
                 file_username, file_password, role = user_data
                 if username == file_username and password == file_password:
 
                     messagebox.showinfo("Login Erfolgreich",
                                         f"Login Erfolgreich als {username}")
-                    self.main.login(username)
+                    self.main.login(username, role)
                     return
                     messagebox.showerror(
                         "Fehler", "Benutzername oder Passwort ist falsch!")
