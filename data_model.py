@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue Nov  5 16:17:50 2024
-test
+
 @author: Luka
 """
 
@@ -142,6 +142,7 @@ class WorkTimeEmployee():
             The unique ID of the employee (default is "default").
         """
         self.employee_id = employee_id
+        self.role = 'employee'
         self.file_path = os.path.join(gui_constants.DATA_PATH, self.employee_id + ".csv")
 
         self.working_days = {}
