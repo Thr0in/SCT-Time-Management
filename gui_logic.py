@@ -37,6 +37,7 @@ from calendar_widget import CalendarWidget
 from side_bar import SideBar
 from data_model import WorkTimeEmployee
 from datetime_functions import DatetimeFunctions as dtf
+from login import LoginFrame
 import gui_constants
 
 
@@ -103,6 +104,27 @@ class Timesheet:
         """
         self.selected_date = date.today()
         self.root = tk.Tk()
+
+
+        self.root.title("Login Screen")
+        self.root.geometry("300x200")
+
+
+        self.employees = {}
+        self.add_employee("default")
+        self.current_employee = self.employees.get("default")
+
+        self.login_frame = LoginFrame(self.root, self)
+        self.login_frame.pack(expand=True, fill=tk.BOTH)
+
+        self.root.mainloop()
+
+    def create_timesheet_window(self):
+        """
+        Create the timesheet widgets and initializes them.
+        """
+        self.login_frame.pack_forget()
+
         self.root.title("STC Timesheet Calendar")
         self.root.geometry('1100x730')
         self.root.protocol("WM_DELETE_WINDOW", lambda: self.on_closing())
@@ -113,16 +135,24 @@ class Timesheet:
         self.side_bar.pack(side="left", expand=True, fill=tk.BOTH)
         self.calendar.pack(side="top", expand=True, fill=tk.Y)
 
-        self.employees = {}
-        self.add_employee("default")
-        self.current_employee = self.employees.get("default")
-
         self.select_month()
 
         day = self.current_employee.get_day(date.today())
         self.print_day(day)
 
-        self.root.mainloop()
+    def login(self, user):
+        """
+        Logs in a user. Has to exist in userdata.txt
+
+        Parameters
+        ----------
+        user : str
+            Username/employee_id.
+        """
+        self.add_employee(user)
+        self.current_employee = self.employees.get(user)
+
+        self.create_timesheet_window()
 
     def on_closing(self):
         """
@@ -201,7 +231,7 @@ class Timesheet:
         if employee_id not in self.employees:
             self.employees[employee_id] = WorkTimeEmployee(employee_id)
         else:
-            print("Employee with id {e_id}· already in database.".format(
+            print("Employee with id {e_id} already in database.".format(
                 e_id=employee_id))
 
     def get_month_days(self, date_object):
