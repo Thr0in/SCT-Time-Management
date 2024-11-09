@@ -205,3 +205,22 @@ class DatetimeFunctions():
         if time_object is not None:
             time_object = time_object.strftime("%H:%M")
         return time_object
+
+    # ------------------------------------------------------------------------------
+
+    def time_in_seconds(self, time_object):
+        """
+        Returns provided time objects time as a value in seconds.
+
+        Parameters
+        ----------
+        time_object : datetime.time
+            The given datetime.time object.
+
+        Returns
+        -------
+        int
+            Time in seconds.
+
+        """
+        return (time_object.hour * 60 + time_object.minute) * 60 + time_object.second
