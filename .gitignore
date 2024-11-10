@@ -5,3 +5,4 @@ data.csv
 default.csv
 data/*
 !data/userdata.txt
+.spyproject/config
