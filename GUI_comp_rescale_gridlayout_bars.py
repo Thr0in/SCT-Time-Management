@@ -122,66 +122,85 @@ def on_resize(event):
     if resize_id is not None:
         root.after_cancel(resize_id)
     resize_id = root.after(100, update_dimensions)
+    
+    
+class MainApp:
+    def __init__(self):
+        # Initialize the root window
+        self.root = tk.Tk()
+        self.root.title("SCT GUI")
+        self.root.geometry("1280x720")
+        self.root.minsize(1280, 720)
 
-# Set up the main window
-root = tk.Tk()
-root.title("SCT GUI")
-root.geometry("1280x720")
-root.minsize(1280, 720)
+        # Configure root layout
+        self.root.columnconfigure(0, minsize=200)  # Sidebar column
+        self.root.columnconfigure(1, weight=1)     # Expandable Calendar_Frame
+        self.root.rowconfigure(0, minsize=70)      # Top bar row
+        self.root.rowconfigure(1, weight=1)        # Expandable Calendar_Frame area
 
-# Configure root layout: sidebar in leftmost column, top bar at top
-root.columnconfigure(0, minsize=200)  # Fixed width for sidebar
-root.columnconfigure(1, weight=1)     # Expandable Calendar_Frame
-root.rowconfigure(0, minsize=70)      # Fixed height for top bar
-root.rowconfigure(1, weight=1)        # Expandable Calendar_Frame area
+        # Initialize components
+        self.create_sidebar()
+        self.create_top_bar()
+        self.create_calendar_frame()
 
-# Initialize and place sidebar in the leftmost column
-sidebar = Sidebar(root, width=200)
-sidebar.frame.grid(row=0, column=0, rowspan=2, sticky="nesw")
+        # Variable to store resize timer ID
+        self.resize_id = None
 
-# Initialize and place top bar in the top row
-top_bar = TopBar(root, height=70)
-top_bar.frame.grid(row=0, column=1, sticky="nesw")
+        # Bind the resize function to window resize events
+        self.root.bind("<Configure>", self.on_resize)
 
-# Create and configure Calendar_Frame for the main Day_Widget grid area
-Calendar_Frame = tk.Frame(root, bg="lightblue")
-Calendar_Frame.grid(row=1, column=1, sticky="nsew", padx=10, pady=10)
+    def create_sidebar(self):
+        # Sidebar in the leftmost column
+        self.sidebar = Sidebar(self.root, width=200)
+        self.sidebar.frame.grid(row=0, column=0, rowspan=2, sticky="nesw")
 
-# Configure Calendar_Frame with 7 columns and 8 rows (1 row for the main label, 1 for days of the week)
-for i in range(7):
-    Calendar_Frame.columnconfigure(i, weight=1, uniform="column")
-for j in range(2, 8):  # Rows 2 to 7 will contain the Day_Widget grid
-    Calendar_Frame.rowconfigure(j, weight=1, uniform="row")
+    def create_top_bar(self):
+        # Top bar in the top row
+        self.top_bar = TopBar(self.root, height=70)
+        self.top_bar.frame.grid(row=0, column=1, sticky="nesw")
 
-# Create the current month header with navigation buttons
-button_previous_month = tk.Button(Calendar_Frame, font=("Arial",  10), text="Previous Month")
-button_previous_month.grid(row=0, column=0, sticky="new", padx=5, pady=5)
+    def create_calendar_frame(self):
+        # Calendar frame for Day_Widget grid area
+        self.calendar_frame = tk.Frame(self.root, bg="lightblue")
+        self.calendar_frame.grid(row=1, column=1, sticky="nsew", padx=10, pady=10)
 
-label_current_month = tk.Label(Calendar_Frame, font=("Arial", 18, "bold"), bg="lightblue", text="Current Month")
-label_current_month.grid(row=0, column=1, columnspan=5, sticky="nsew")
+        # Configure columns and rows
+        for i in range(7):
+            self.calendar_frame.columnconfigure(i, weight=1, uniform="column")
+        for j in range(2, 8):
+            self.calendar_frame.rowconfigure(j, weight=1, uniform="row")
 
-button_next_month = tk.Button(Calendar_Frame, font=("Arial",  10), text="Next Month")
-button_next_month.grid(row=0, column=6, sticky="new", padx=5, pady=5)
+        # Create current month header with navigation buttons
+        self.button_previous_month = tk.Button(self.calendar_frame, font=("Arial", 10), text="Previous Month")
+        self.button_previous_month.grid(row=0, column=0, sticky="new", padx=5, pady=5)
 
-# Create a row of labels for each day of the week
-days_of_week = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
-for i, day in enumerate(days_of_week):
-    day_label = tk.Label(Calendar_Frame, text=day, font=("Arial", 14), bg="lightblue")
-    day_label.grid(row=1, column=i, sticky="nsew")
+        self.label_current_month = tk.Label(self.calendar_frame, font=("Arial", 18, "bold"), bg="lightblue", text="Current Month")
+        self.label_current_month.grid(row=0, column=1, columnspan=5, sticky="nsew")
 
-# Create and place Day_Widget instances starting from row 2 onward
-composite_widgets = []
-for row in range(2, 8):
-    for col in range(7):
-        widget = Day_Widget(Calendar_Frame, width_ratio=1/7, height_ratio=1/6)
-        widget.frame.grid(row=row, column=col, sticky="nsew", padx=5, pady=5)
-        composite_widgets.append(widget)
+        self.button_next_month = tk.Button(self.calendar_frame, font=("Arial", 10), text="Next Month")
+        self.button_next_month.grid(row=0, column=6, sticky="new", padx=5, pady=5)
 
-# Variable to store the resize timer ID
-resize_id = None
+        # Row of labels for each day of the week
+        days_of_week = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+        for i, day in enumerate(days_of_week):
+            day_label = tk.Label(self.calendar_frame, text=day, font=("Arial", 14), bg="lightblue")
+            day_label.grid(row=1, column=i, sticky="nsew")
 
-# Bind the resize function to window resize events
-root.bind("<Configure>", on_resize)
+        # Create and place Day_Widget instances
+        self.composite_widgets = []
+        for row in range(2, 8):
+            for col in range(7):
+                widget = Day_Widget(self.calendar_frame, width_ratio=1/7, height_ratio=1/6)
+                widget.frame.grid(row=row, column=col, sticky="nsew", padx=5, pady=5)
+                self.composite_widgets.append(widget)
 
-# Run the Tkinter event loop
-root.mainloop()
+    def on_resize(self, event):
+        # Implement resize handling logic here
+        pass
+
+    def run(self):
+        # Run the Tkinter event loop
+        self.root.mainloop()
+
+app = MainApp()
+app.run()
