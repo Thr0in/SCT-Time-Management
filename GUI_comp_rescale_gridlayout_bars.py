@@ -227,7 +227,11 @@ class Info_Panel(tk.Frame):
     def __init__(self, parent):
         """Composite widget containing six labels for displaying information."""
         super().__init__(master=parent, bg='lightgray')
-        #self.frame = tk.Frame(parent, bg="lightgray")
+
+        # Data StringVars
+        self.var_flex_time = tk.StringVar(value="+ 00:00")
+        self.var_vacation_days = tk.StringVar(value=30)
+        self.var_old_vacation_days = tk.StringVar(value=0)
 
         # Original labels
         self.label_flex_time = tk.Label(self, text="Flex-Time", font=("Arial", 12, "underline"), bg="lightgray")
@@ -235,9 +239,9 @@ class Info_Panel(tk.Frame):
         self.label_vacation_days_previous = tk.Label(self, text="From Previous Year", font=("Arial", 12, "underline"), bg="lightgray")
 
         # New labels displaying "--"
-        self.label_flex_time_text = tk.Label(self, text="--", font=("Arial", 12), bg="lightgray")
-        self.label_vacation_days_text = tk.Label(self, text="--", font=("Arial", 12), bg="lightgray")
-        self.label_vacation_days_previous_text = tk.Label(self, text="--", font=("Arial", 12), bg="lightgray")
+        self.label_flex_time_text = tk.Label(self, textvariable=self.var_flex_time, font=("Arial", 12), bg="lightgray")
+        self.label_vacation_days_text = tk.Label(self, textvariable=self.var_vacation_days, font=("Arial", 12), bg="lightgray")
+        self.label_vacation_days_previous_text = tk.Label(self, textvariable=self.var_old_vacation_days, font=("Arial", 12), bg="lightgray")
 
         # Arrange labels in the Info_Panel
         self.label_flex_time.pack(padx=5, pady=(2, 0), anchor="w")
@@ -251,10 +255,8 @@ class Info_Panel(tk.Frame):
 
 class Sidebar(tk.Frame):
     def __init__(self, parent, width):
-        super().__init__(master=parent, width=width)
+        super().__init__(master=parent, width=width, bg="gray")
         """A composite sidebar widget with an Info_Panel and buttons."""
-        #self.frame = tk.Frame(parent, width=width, bg="gray")
-        self.grid_propagate(False)  # Prevents resizing
 
         # Create the Info_Panel at the top of the sidebar
         self.info_panel = Info_Panel(self)
@@ -265,12 +267,31 @@ class Sidebar(tk.Frame):
         self.button_request_vacation.pack(padx=10, fill="x")
 
         # Create two buttons at the bottom, stacked on top of each other
-        self.button_start_break = tk.Button(self, text="Start Break", font=("Arial", 12))
-        self.button_start_work = tk.Button(self, text="Start Workday", font=("Arial", 12))
+        self.button_log_break = tk.Button(self, text="Start Break", font=("Arial", 12), command=lambda: self.log_break())
+        self.button_log_work = tk.Button(self, text="Start Workday", font=("Arial", 12), command=lambda: self.log_time())
 
         # Place these buttons at the bottom
-        self.button_start_break.pack(side="bottom", padx=10, pady=10, fill="x")
-        self.button_start_work.pack(side="bottom", padx=10, fill="x")
+        self.button_log_break.pack(side="bottom", padx=10, pady=10, fill="x")
+        self.button_log_work.pack(side="bottom", padx=10, fill="x")
+
+    def log_time(self):
+        """
+        Callback method for work time logging button.
+        """
+        self.master.main.log_work_time()
+
+    def log_break(self):
+        """
+        Callback method for break time logging button.
+        """
+        self.master.main.log_break_time()
+
+    def update(self):
+        """
+        Callback method for update button.
+        """
+        self.focus_set()
+        self.master.main.update_info_panel()
 
 class TopBar(tk.Frame):
     def __init__(self, parent, height):
@@ -287,6 +308,7 @@ class MainApp(tk.Frame):
     def __init__(self, parent, main=None):
         super().__init__(master=parent)
         self.main = main
+        self.var_selected_month = tk.StringVar(value="Current Month")
 
         # Configure root layout
         self.columnconfigure(0, minsize=200)  # Sidebar column
@@ -324,7 +346,7 @@ class MainApp(tk.Frame):
         self.button_previous_month = tk.Button(self.calendar_frame, font=("Arial", 10), text="Previous Month")
         self.button_previous_month.grid(row=0, column=0, sticky="new", padx=5, pady=5)
 
-        self.label_current_month = tk.Label(self.calendar_frame, font=("Arial", 18, "bold"), bg="lightblue", text="Current Month")
+        self.label_current_month = tk.Label(self.calendar_frame, font=("Arial", 18, "bold"), bg="lightblue", textvariable=self.var_selected_month)
         self.label_current_month.grid(row=0, column=1, columnspan=5, sticky="nsew")
 
         self.button_next_month = tk.Button(self.calendar_frame, font=("Arial", 10), text="Next Month")
@@ -337,12 +359,12 @@ class MainApp(tk.Frame):
             day_label.grid(row=1, column=i, sticky="nsew")
 
         # Create and place Day_Widget instances
-        self.composite_widgets = []
+        self.days = []
         for row in range(2, 8):
             for col in range(7):
                 widget = Day_Widget(self.calendar_frame)
                 widget.grid(row=row, column=col, sticky="nsew", padx=5, pady=5)
-                self.composite_widgets.append(widget)
+                self.days.append(widget)
 
     def run(self):
         # Run the Tkinter event loop

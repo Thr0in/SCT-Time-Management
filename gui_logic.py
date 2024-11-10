@@ -160,28 +160,27 @@ class Timesheet:
         """
         self.login_frame.pack_forget()
 
-        app.pack(expand=True, fill=tk.BOTH)
-
         self.root.title("SCT Timesheet Calendar")
         self.root.geometry('1280x720')  # '1100x815')
         self.root.minsize(1280, 720)
         self.root.protocol("WM_DELETE_WINDOW", lambda: self.on_closing())
 
-        self.gui = gui.MainApp()
+        self.gui = gui.MainApp(self.root, self)
+        self.gui.pack(expand=True, fill=tk.BOTH)
 
-        self.header = STCHeader(self.root, self)
-        self.calendar = CalendarWidget(self.root, self)
-        self.side_bar = SideBar(self.root, self)
+        self.header = self.gui.top_bar  # STCHeader(self.root, self)
+        self.calendar = self.gui.calendar_frame  # CalendarWidget(self.root, self)
+        self.side_bar = self.gui.sidebar  # SideBar(self.root, self)
 
-        self.header.pack(side='top', fill=tk.X, pady=0)
-        self.side_bar.pack(side="left", anchor='nw', expand=True, fill=tk.BOTH)
-        self.calendar.pack(side="left", anchor='ne', expand=True, fill=tk.Y)
+        #self.header.pack(side='top', fill=tk.X, pady=0)
+        #self.side_bar.pack(side="left", anchor='nw', expand=True, fill=tk.BOTH)
+        #self.calendar.pack(side="left", anchor='ne', expand=True, fill=tk.Y)
 
-        self.header.employee_name.set(self.current_employee.employee_id)
-        self.header.role.set('(' + self.current_employee.role + ')')
+        #self.header.employee_name.set(self.current_employee.employee_id)
+        #self.header.role.set('(' + self.current_employee.role + ')')
 
-        self.change_color(gui_constants.HIGHLIGHT_COLOR, self.header.menu)
-        self.header.logout.config(bg=gui_constants.DEFAULT_COLOR)
+        #self.change_color(gui_constants.HIGHLIGHT_COLOR, self.header.menu)
+        #self.header.logout.config(bg=gui_constants.DEFAULT_COLOR)
 
         self.select_month()
 
@@ -245,7 +244,7 @@ class Timesheet:
         """
         Persistently save all data of the selected month on disk.
         """
-        for day in self.calendar.content.days:
+        for day in self.gui.days:
             self.store_input_data(day)
         self.current_employee.save_working_days()
 
@@ -292,7 +291,7 @@ class Timesheet:
         """
         Removes all data from all input fields.
         """
-        for day in self.calendar.content.days:
+        for day in self.gui.days:
             day.set_start_time(None)
             day.set_end_time(None)
             day.set_break_time(None)
@@ -306,7 +305,7 @@ class Timesheet:
         are filled with gui_constants.NO_TIME_DATA.
         """
         self.current_employee.load_working_days()
-        for day in self.calendar.content.days:
+        for day in self.gui.days:
             current_date = self.get_date_of_day(day)
             if current_date is not None:
                 try:
@@ -416,10 +415,10 @@ class Timesheet:
             self.selected_date.year, self.selected_date.month), [])
         if len(month_days_flat) <= 35:
             for i in range(35, 42):
-                self.calendar.content.days[i].grid_remove()
+                self.gui.days[i].grid_forget()
         else:
             for i in range(35, 42):
-                self.calendar.content.days[i].grid()
+                self.gui.days[i].grid()
 
     def select_month(self, date_object=date.today()):
         """
@@ -440,12 +439,12 @@ class Timesheet:
         else:
             self.selected_date = date_object
 
-        self.calendar.header.var_selected_month.set(
+        self.gui.var_selected_month.set(
             self.selected_date.strftime("%B %Y"))
 
         month_days = self.get_month_days(date_object)
 
-        for day, month_day in zip(self.calendar.content.days, month_days):
+        for day, month_day in zip(self.gui.days, month_days):
             day.var_day.set(month_day)
 
             if month_day == 0:
@@ -454,11 +453,12 @@ class Timesheet:
 
             elif (self.selected_date.replace(day=month_day) == date.today()):
                 self.change_color(gui_constants.HIGHLIGHT_COLOR, day)
-                day.number.config(bg=gui_constants.DEFAULT_COLOR)
+                day.label_day.config(bg=gui_constants.DEFAULT_COLOR)
+                #day.config(bg=gui_constants.HIGHLIGHT_COLOR)
 
             else:
                 self.change_color(gui_constants.DEFAULT_COLOR, day)
-                day.number.config(bg=gui_constants.HIGHLIGHT_COLOR)
+                day.label_day.config(bg=gui_constants.HIGHLIGHT_COLOR)
         self.hide_empty_row()
         self.update_from_db()
 
@@ -517,13 +517,13 @@ class Timesheet:
             button_label = "End Workday"
         else:
             button_label = "Update Endtime"
-        self.side_bar.button_log_working_time.config(text=button_label)
+        self.side_bar.button_log_work.config(text=button_label)
 
         if self.current_employee.on_break is not None:
             button_label = "End Break"
         else:
             button_label = "Start Break"
-        self.side_bar.button_log_break_time.config(text=button_label)
+        self.side_bar.button_log_break.config(text=button_label)
 
     def store_input_data(self, day):
         """
