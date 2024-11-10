@@ -38,7 +38,7 @@ import csv
 from data_model import WorkTimeEmployee
 from datetime_functions import DatetimeFunctions as dtf
 from login import LoginFrame
-import GUI_comp_rescale_gridlayout_bars as gui
+import gui
 import gui_constants
 
 
