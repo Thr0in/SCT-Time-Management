@@ -167,9 +167,7 @@ class Timesheet:
         self.gui = gui.MainApp(self.root, self)
         self.gui.pack(expand=True, fill=tk.BOTH)
 
-        self.gui.top_bar = self.gui.top_bar
-        self.gui.calendar_frame = self.gui.calendar_frame
-        self.gui.sidebar = self.gui.sidebar
+        self.change_color(gui_constants.DEFAULT_COLOR, self.gui.sidebar.info_panel)
         self.select_month()
 
         self.gui.top_bar.employee_name.set(self.current_employee.employee_id)

@@ -246,7 +246,7 @@ class Day_Widget(tk.Frame):
 class Info_Panel(tk.Frame):
     def __init__(self, parent):
         """Composite widget containing six labels for displaying information."""
-        super().__init__(master=parent, bg='lightgray', relief="solid", borderwidth=1)
+        super().__init__(master=parent, bg=gui_constants.BACKGROUND_COLOR, relief="solid", borderwidth=1)
 
         # Data StringVars
         self.var_flex_time = tk.StringVar(value="+ 00:00")
@@ -255,19 +255,19 @@ class Info_Panel(tk.Frame):
 
         # Original labels
         self.label_flex_time = tk.Label(
-            self, text="Flex-Time", font=("Arial", 12, "underline"), bg="lightgray")
+            self, text="Flex-Time:", font=("Arial", 12, "underline"), bg=gui_constants.BACKGROUND_COLOR)
         self.label_vacation_days = tk.Label(
-            self, text="Vacation Days", font=("Arial", 12, "underline"), bg="lightgray")
+            self, text="Vacation Days:", font=("Arial", 12, "underline"), bg=gui_constants.BACKGROUND_COLOR)
         self.label_vacation_days_previous = tk.Label(
-            self, text="From Previous Year", font=("Arial", 12, "underline"), bg="lightgray")
+            self, text="From Previous Year:", font=("Arial", 12, "underline"), bg=gui_constants.BACKGROUND_COLOR)
 
         # New labels displaying "--"
         self.label_flex_time_text = tk.Label(
-            self, textvariable=self.var_flex_time, font=("Arial", 12), bg="lightgray")
+            self, textvariable=self.var_flex_time, font=("Arial", 12), bg=gui_constants.BACKGROUND_COLOR)
         self.label_vacation_days_text = tk.Label(
-            self, textvariable=self.var_vacation_days, font=("Arial", 12), bg="lightgray")
+            self, textvariable=self.var_vacation_days, font=("Arial", 12), bg=gui_constants.BACKGROUND_COLOR)
         self.label_vacation_days_previous_text = tk.Label(
-            self, textvariable=self.var_old_vacation_days, font=("Arial", 12), bg="lightgray")
+            self, textvariable=self.var_old_vacation_days, font=("Arial", 12), bg=gui_constants.BACKGROUND_COLOR)
 
         # Arrange labels in the Info_Panel
         self.label_flex_time.pack(padx=5, pady=(2, 0), anchor="w")
@@ -283,7 +283,7 @@ class Info_Panel(tk.Frame):
 
 class Sidebar(tk.Frame):
     def __init__(self, parent, width):
-        super().__init__(master=parent, width=width, background="lightgrey")
+        super().__init__(master=parent, width=width, background=gui_constants.BACKGROUND_COLOR)
         """A composite sidebar widget with an Info_Panel and buttons."""
 
         # Create the Info_Panel at the top of the sidebar
@@ -380,7 +380,7 @@ class MainApp(tk.Frame):
 
     def create_calendar_frame(self):
         # Calendar frame for Day_Widget grid area
-        self.calendar_frame = tk.Frame(self, bg="lightblue")
+        self.calendar_frame = tk.Frame(self, bg=gui_constants.HIGHLIGHT_COLOR)
         self.calendar_frame.grid(
             row=1, column=1, sticky="nsew", padx=10, pady=10)
 
@@ -397,7 +397,7 @@ class MainApp(tk.Frame):
             row=0, column=0, sticky="new", padx=5, pady=5)
 
         self.label_current_month = tk.Label(self.calendar_frame, font=(
-            "Arial", 18, "bold"), bg="lightblue", textvariable=self.var_selected_month)
+            "Arial", 18, "bold"), bg=gui_constants.HIGHLIGHT_COLOR, textvariable=self.var_selected_month)
         self.label_current_month.grid(
             row=0, column=1, columnspan=5, sticky="nsew")
 
@@ -411,7 +411,7 @@ class MainApp(tk.Frame):
                         "Thursday", "Friday", "Saturday", "Sunday"]
         for i, day in enumerate(days_of_week):
             day_label = tk.Label(self.calendar_frame,
-                                 text=day, font=("Arial", 14), bg="lightblue")
+                                 text=day, font=("Arial", 14), bg=gui_constants.HIGHLIGHT_COLOR)
             day_label.grid(row=1, column=i, sticky="nsew")
 
         # Create and place Day_Widget instances

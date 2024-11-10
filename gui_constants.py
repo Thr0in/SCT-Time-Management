@@ -12,8 +12,9 @@ EXTRA_LARGE = ('TkDefaultFont', 32, 'bold')
 
 # Colors
 HIGHLIGHT_COLOR = 'slategray1'  # 'lightblue'
-DISABLED_COLOR = 'gray60'
+DISABLED_COLOR = 'gray70'
 DEFAULT_COLOR = 'SystemButtonFace'
+BACKGROUND_COLOR = 'lightgray'
 
 DEBUG = False
 AUTO_LOGIN = False
