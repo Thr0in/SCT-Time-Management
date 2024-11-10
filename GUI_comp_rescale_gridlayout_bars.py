@@ -228,20 +228,21 @@ class Day_Widget(tk.Frame):
         self.var_total_time.set(dtf.time_to_string(self, time_in_seconds))
 
 
-class Info_Panel:
+class Info_Panel(tk.Frame):
     def __init__(self, parent):
         """Composite widget containing six labels for displaying information."""
-        self.frame = tk.Frame(parent, bg="lightgray")
+        super().__init__(master=parent, bg='lightgray')
+        #self.frame = tk.Frame(parent, bg="lightgray")
 
         # Original labels
-        self.label_flex_time = tk.Label(self.frame, text="Flex-Time", font=("Arial", 12, "underline"), bg="lightgray")
-        self.label_vacation_days = tk.Label(self.frame, text="Vacation Days", font=("Arial", 12, "underline"), bg="lightgray")
-        self.label_vacation_days_previous = tk.Label(self.frame, text="From Previous Year", font=("Arial", 12, "underline"), bg="lightgray")
+        self.label_flex_time = tk.Label(self, text="Flex-Time", font=("Arial", 12, "underline"), bg="lightgray")
+        self.label_vacation_days = tk.Label(self, text="Vacation Days", font=("Arial", 12, "underline"), bg="lightgray")
+        self.label_vacation_days_previous = tk.Label(self, text="From Previous Year", font=("Arial", 12, "underline"), bg="lightgray")
 
         # New labels displaying "--"
-        self.label_flex_time_text = tk.Label(self.frame, text="--", font=("Arial", 12), bg="lightgray")
-        self.label_vacation_days_text = tk.Label(self.frame, text="--", font=("Arial", 12), bg="lightgray")
-        self.label_vacation_days_previous_text = tk.Label(self.frame, text="--", font=("Arial", 12), bg="lightgray")
+        self.label_flex_time_text = tk.Label(self, text="--", font=("Arial", 12), bg="lightgray")
+        self.label_vacation_days_text = tk.Label(self, text="--", font=("Arial", 12), bg="lightgray")
+        self.label_vacation_days_previous_text = tk.Label(self, text="--", font=("Arial", 12), bg="lightgray")
 
         # Arrange labels in the Info_Panel
         self.label_flex_time.pack(padx=5, pady=(2, 0), anchor="w")
@@ -253,51 +254,50 @@ class Info_Panel:
         self.label_vacation_days_previous.pack(padx=5, pady=(2, 0), anchor="w")
         self.label_vacation_days_previous_text.pack(padx=10, pady=(0, 5), anchor="w")
 
-class Sidebar:
+class Sidebar(tk.Frame):
     def __init__(self, parent, width):
+        super().__init__(master=parent, width=width)
         """A composite sidebar widget with an Info_Panel and buttons."""
-        self.frame = tk.Frame(parent, width=width, bg="gray")
-        self.frame.grid_propagate(False)  # Prevents resizing
+        #self.frame = tk.Frame(parent, width=width, bg="gray")
+        self.grid_propagate(False)  # Prevents resizing
 
         # Create the Info_Panel at the top of the sidebar
-        self.info_panel = Info_Panel(self.frame)
-        self.info_panel.frame.pack(padx=10, pady=10, fill="x")
+        self.info_panel = Info_Panel(self)
+        self.info_panel.pack(padx=10, pady=10, fill="x")
 
         # Add button directly below the Info_Panel
-        self.button_request_vacation = tk.Button(self.frame, text="Request Vacation", font=("Arial", 12))
+        self.button_request_vacation = tk.Button(self, text="Request Vacation", font=("Arial", 12))
         self.button_request_vacation.pack(padx=10, fill="x")
 
         # Create two buttons at the bottom, stacked on top of each other
-        self.button_start_break = tk.Button(self.frame, text="Start Break", font=("Arial", 12))
-        self.button_start_work = tk.Button(self.frame, text="Start Workday", font=("Arial", 12))
+        self.button_start_break = tk.Button(self, text="Start Break", font=("Arial", 12))
+        self.button_start_work = tk.Button(self, text="Start Workday", font=("Arial", 12))
 
         # Place these buttons at the bottom
         self.button_start_break.pack(side="bottom", padx=10, pady=10, fill="x")
         self.button_start_work.pack(side="bottom", padx=10, fill="x")
 
-class TopBar:
+class TopBar(tk.Frame):
     def __init__(self, parent, height):
+        super().__init__(master=parent, height=height, bg='darkblue')
         """A composite top bar widget that expands to fit the width of the window."""
-        self.frame = tk.Frame(parent, bg="darkblue", height=height)
-        self.frame.grid_propagate(False)
+        #self = tk.Frame(parent, bg="darkblue", height=height)
+        self.grid_propagate(False)
 
         # Logout button on the right side of the top bar
-        self.logout_button = tk.Button(self.frame, text="Logout", font=("Arial", 12), bg="white")
+        self.logout_button = tk.Button(self, text="Logout", font=("Arial", 12), bg="white")
         self.logout_button.pack(padx=10, pady=10, side="right")  # Align the button to the right side of the bar
-    
-class MainApp:
-    def __init__(self):
-        # Initialize the root window
-        self.root = tk.Tk()
-        self.root.title("SCT GUI")
-        self.root.geometry("1280x720")
-        self.root.minsize(1280, 720)
+
+class MainApp(tk.Frame):
+    def __init__(self, parent, main=None):
+        super().__init__(master=parent)
+        self.main = main
 
         # Configure root layout
-        self.root.columnconfigure(0, minsize=200)  # Sidebar column
-        self.root.columnconfigure(1, weight=1)     # Expandable Calendar_Frame
-        self.root.rowconfigure(0, minsize=70)      # Top bar row
-        self.root.rowconfigure(1, weight=1)        # Expandable Calendar_Frame area
+        self.columnconfigure(0, minsize=200)  # Sidebar column
+        self.columnconfigure(1, weight=1)     # Expandable Calendar_Frame
+        self.rowconfigure(0, minsize=70)      # Top bar row
+        self.rowconfigure(1, weight=1)        # Expandable Calendar_Frame area
 
         # Initialize components
         self.create_sidebar()
@@ -306,17 +306,17 @@ class MainApp:
 
     def create_sidebar(self):
         # Sidebar in the leftmost column
-        self.sidebar = Sidebar(self.root, width=200)
-        self.sidebar.frame.grid(row=0, column=0, rowspan=2, sticky="nesw")
+        self.sidebar = Sidebar(self, width=200)
+        self.sidebar.grid(row=0, column=0, rowspan=2, sticky="nesw")
 
     def create_top_bar(self):
         # Top bar in the top row
-        self.top_bar = TopBar(self.root, height=70)
-        self.top_bar.frame.grid(row=0, column=1, sticky="nesw")
+        self.top_bar = TopBar(self, height=70)
+        self.top_bar.grid(row=0, column=1, sticky="nesw")
 
     def create_calendar_frame(self):
         # Calendar frame for Day_Widget grid area
-        self.calendar_frame = tk.Frame(self.root, bg="lightblue")
+        self.calendar_frame = tk.Frame(self, bg="lightblue")
         self.calendar_frame.grid(row=1, column=1, sticky="nsew", padx=10, pady=10)
 
         # Configure columns and rows
@@ -351,7 +351,18 @@ class MainApp:
 
     def run(self):
         # Run the Tkinter event loop
-        self.root.mainloop()
+        self.mainloop()
 
-app = MainApp()
-app.run()
+
+# Testing Login
+if __name__ == "__main__":
+    root = tk.Tk()
+    root.title("SCT GUI")
+    root.geometry("1280x720")
+    root.minsize(1280, 720)
+
+    app = MainApp(root)
+
+    app.pack(expand=True, fill=tk.BOTH)
+
+    root.mainloop()
