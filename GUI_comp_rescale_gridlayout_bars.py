@@ -412,7 +412,6 @@ class MainApp(tk.Frame):
                 widget = Day_Widget(self.calendar_frame)
                 widget.grid(row=row, column=col, sticky="nsew", padx=5, pady=5)
                 self.days.append(widget)
-                print(len(self.days))
 
     def next_month(self):
         """
