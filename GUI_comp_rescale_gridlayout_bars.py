@@ -7,6 +7,7 @@ Created on Sun Nov 10 11:45:51 2024
 
 import tkinter as tk
 import re
+from dateutil.relativedelta import relativedelta
 
 from datetime_functions import DatetimeFunctions as dtf
 import gui_constants
@@ -343,13 +344,13 @@ class MainApp(tk.Frame):
             self.calendar_frame.rowconfigure(j, weight=1, uniform="row")
 
         # Create current month header with navigation buttons
-        self.button_previous_month = tk.Button(self.calendar_frame, font=("Arial", 10), text="Previous Month")
+        self.button_previous_month = tk.Button(self.calendar_frame, font=("Arial", 10), text="Previous Month", command=lambda: self.previous_month())
         self.button_previous_month.grid(row=0, column=0, sticky="new", padx=5, pady=5)
 
         self.label_current_month = tk.Label(self.calendar_frame, font=("Arial", 18, "bold"), bg="lightblue", textvariable=self.var_selected_month)
         self.label_current_month.grid(row=0, column=1, columnspan=5, sticky="nsew")
 
-        self.button_next_month = tk.Button(self.calendar_frame, font=("Arial", 10), text="Next Month")
+        self.button_next_month = tk.Button(self.calendar_frame, font=("Arial", 10), text="Next Month", command=lambda: self.next_month())
         self.button_next_month.grid(row=0, column=6, sticky="new", padx=5, pady=5)
 
         # Row of labels for each day of the week
@@ -366,9 +367,20 @@ class MainApp(tk.Frame):
                 widget.grid(row=row, column=col, sticky="nsew", padx=5, pady=5)
                 self.days.append(widget)
 
-    def run(self):
-        # Run the Tkinter event loop
-        self.mainloop()
+    def next_month(self):
+        """
+        Advances the calendar display by one month,
+        updating the main calendar widget.
+        """
+        self.main.store_all_inputs()
+        self.main.select_month(self.main.selected_date + relativedelta(months=1))
+
+    def previous_month(self):
+        """
+        Moves the calendar display back by one month,
+        updating the main calendar widget.
+        """
+        self.main.select_month(self.main.selected_date + relativedelta(months=-1))
 
 
 # Testing Login
