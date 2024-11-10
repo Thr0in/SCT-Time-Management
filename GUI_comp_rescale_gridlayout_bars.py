@@ -14,7 +14,6 @@ class Day_Widget:
 
         # Create a Frame for the composite widget
         self.frame = tk.Frame(parent, bg=bg_frame)
-        self.frame.grid_propagate(False)
 
         # Create and place labels and entries
         self.label_day = tk.Label(self.frame, text="00", anchor="center")
