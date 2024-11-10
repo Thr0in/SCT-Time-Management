@@ -107,22 +107,6 @@ class TopBar:
         # Logout button on the right side of the top bar
         self.logout_button = tk.Button(self.frame, text="Logout", font=("Arial", 12), bg="white")
         self.logout_button.pack(padx=10, pady=10, side="right")  # Align the button to the right side of the bar
-
-def update_dimensions():
-    # Update width and height of Calendar_Frame for resizing Day_Widget instances
-    width = Calendar_Frame.winfo_width()
-    height = Calendar_Frame.winfo_height()
-
-    # Update all Day_Widget sizes
-    for widget in composite_widgets:
-        widget.update_size(width, height)
-
-def on_resize(event):
-    global resize_id
-    if resize_id is not None:
-        root.after_cancel(resize_id)
-    resize_id = root.after(100, update_dimensions)
-    
     
 class MainApp:
     def __init__(self):
@@ -142,12 +126,6 @@ class MainApp:
         self.create_sidebar()
         self.create_top_bar()
         self.create_calendar_frame()
-
-        # Variable to store resize timer ID
-        self.resize_id = None
-
-        # Bind the resize function to window resize events
-        self.root.bind("<Configure>", self.on_resize)
 
     def create_sidebar(self):
         # Sidebar in the leftmost column
@@ -193,10 +171,6 @@ class MainApp:
                 widget = Day_Widget(self.calendar_frame, width_ratio=1/7, height_ratio=1/6)
                 widget.frame.grid(row=row, column=col, sticky="nsew", padx=5, pady=5)
                 self.composite_widgets.append(widget)
-
-    def on_resize(self, event):
-        # Implement resize handling logic here
-        pass
 
     def run(self):
         # Run the Tkinter event loop
