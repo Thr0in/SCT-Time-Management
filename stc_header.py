@@ -29,7 +29,7 @@ class STCHeader(tk.Frame):
         self.menu.pack(side='right', expand=True, fill=tk.BOTH)
 
         self.logout = tk.Button(
-            self.menu, text="Logout", command=lambda: self.logout(),
+            self.menu, text="Logout", command=lambda: self.main.logout(),
             font=gui_constants.BOLD)
         self.logout.pack(side='right')
 
@@ -39,9 +39,6 @@ class STCHeader(tk.Frame):
         tk.Label(employee, textvariable=self.employee_name,
                  font=gui_constants.LARGE).pack(side='top')
         tk.Label(employee, textvariable=self.role).pack(side='top', padx=20)
-
-    def logout(self):
-        self.main.logout()
 
 
 # Testing Login

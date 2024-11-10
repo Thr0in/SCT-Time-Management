@@ -41,6 +41,7 @@ from data_model import WorkTimeEmployee
 from datetime_functions import DatetimeFunctions as dtf
 from login import LoginFrame
 from stc_header import STCHeader
+import GUI_comp_rescale_gridlayout_bars as gui
 import gui_constants
 
 
@@ -159,9 +160,14 @@ class Timesheet:
         """
         self.login_frame.pack_forget()
 
-        self.root.title("STC Timesheet Calendar")
-        self.root.geometry('1100x815')
+        app.pack(expand=True, fill=tk.BOTH)
+
+        self.root.title("SCT Timesheet Calendar")
+        self.root.geometry('1280x720')  # '1100x815')
+        self.root.minsize(1280, 720)
         self.root.protocol("WM_DELETE_WINDOW", lambda: self.on_closing())
+
+        self.gui = gui.MainApp()
 
         self.header = STCHeader(self.root, self)
         self.calendar = CalendarWidget(self.root, self)
@@ -578,15 +584,18 @@ class Timesheet:
         if current_date is not None:
             work_day = self.current_employee.create_day(current_date)
             if day.var_start_time.get() in (gui_constants.NO_TIME_DATA, ''):
-                print(day.var_day.get(), 'start', day.var_start_time.get())
+                if gui_constants.DEBUG:
+                    print(day.var_day.get(), 'start', day.var_start_time.get())
                 work_day.start_time = None
 
             if day.var_end_time.get() in (gui_constants.NO_TIME_DATA, ''):
-                print(day.var_day.get(), 'end', day.var_end_time.get())
+                if gui_constants.DEBUG:
+                    print(day.var_day.get(), 'end', day.var_end_time.get())
                 work_day.end_time = None
 
             if day.var_break_time.get() in (gui_constants.NO_TIME_DATA, ''):
-                print(day.var_day.get(), 'break', day.var_break_time.get())
+                if gui_constants.DEBUG:
+                    print(day.var_day.get(), 'break', day.var_break_time.get())
                 work_day.break_time = None
 
             day.set_total_time(work_day.get_work_time())
