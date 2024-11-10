@@ -1,0 +1,5 @@
+Mitarbeiter,password123,Employee
+SuperVisor,secure456,Super Visor
+Chef,strong789,CEO
+test,test,Admin
+default,123,Employee

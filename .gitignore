@@ -1,0 +1,7 @@
+*.pyc
+__pycache__/
+**/__pycache__/
+data.csv
+default.csv
+data/*
+!data/userdata.txt
