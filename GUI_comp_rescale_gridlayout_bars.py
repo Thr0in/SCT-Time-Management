@@ -12,11 +12,10 @@ from datetime_functions import DatetimeFunctions as dtf
 import gui_constants
 
 class Day_Widget(tk.Frame):
-    def __init__(self, parent, width_ratio, height_ratio, bg_frame="lightgreen"):
+    def __init__(self, parent, bg_frame="lightgreen"):
         super().__init__(master=parent, bg=bg_frame)
         self.parent = parent
-        self.width_ratio = width_ratio
-        self.height_ratio = height_ratio
+        self.font_scale_factor = 0.1
 
         # StringVars labels
         self.var_day = tk.StringVar(value=f"{0:02}")
@@ -50,21 +49,19 @@ class Day_Widget(tk.Frame):
         self.entry_break.place(relx=0.525, rely=0.4, relwidth=0.425, relheight=0.2)
         self.label_total.place(relx=0.05, rely=0.75, relwidth=0.9, relheight=0.2)
 
-    def update_size(self, width, height):
-        composite_width = int(width * self.width_ratio)
-        composite_height = int(height * self.height_ratio)
-        self.config(width=composite_width, height=composite_height)
+        # Bind resize event to adjust font size
+        self.bind("<Configure>", self.adjust_font_size)
 
-        # Calculate font size based on composite height
-        font_size = max(8, int(composite_height * 0.1))
-        font = ("Arial", font_size)
+    def adjust_font_size(self, event):
+        # Calculate font size based on the height of the Day_Widget frame
+        font_size = int(event.height * self.font_scale_factor)
 
-        # Update font for each label and entry
-        self.label_day.config(font=font)
-        self.entry_start.config(font=font)
-        self.entry_end.config(font=font)
-        self.entry_break.config(font=font)
-        self.label_total.config(font=font)
+        # Apply calculated font size to each label and entry widget
+        self.label_day.config(font=("Arial", font_size))
+        self.entry_start.config(font=("Arial", font_size))
+        self.entry_end.config(font=("Arial", font_size))
+        self.entry_break.config(font=("Arial", font_size))
+        self.label_total.config(font=("Arial", font_size))
 
     def on_validate_input(self, field_input):
         """
@@ -345,7 +342,7 @@ class MainApp(tk.Frame):
         self.composite_widgets = []
         for row in range(2, 8):
             for col in range(7):
-                widget = Day_Widget(self.calendar_frame, width_ratio=1/7, height_ratio=1/6)
+                widget = Day_Widget(self.calendar_frame)
                 widget.grid(row=row, column=col, sticky="nsew", padx=5, pady=5)
                 self.composite_widgets.append(widget)
 
