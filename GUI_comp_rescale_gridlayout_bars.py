@@ -8,10 +8,9 @@ Created on Sun Nov 10 11:45:51 2024
 import tkinter as tk
 
 class Day_Widget:
-    def __init__(self, parent, width_ratio, height_ratio, bg_frame="lightgreen"):
+    def __init__(self, parent, bg_frame="lightgreen"):
         self.parent = parent
-        self.width_ratio = width_ratio
-        self.height_ratio = height_ratio
+        self.font_scale_factor = 0.1
 
         # Create a Frame for the composite widget
         self.frame = tk.Frame(parent, bg=bg_frame)
@@ -35,21 +34,19 @@ class Day_Widget:
         self.entry_break.place(relx=0.525, rely=0.4, relwidth=0.425, relheight=0.2)
         self.label_total.place(relx=0.05, rely=0.75, relwidth=0.9, relheight=0.2)
 
-    def update_size(self, width, height):
-        composite_width = int(width * self.width_ratio)
-        composite_height = int(height * self.height_ratio)
-        self.frame.config(width=composite_width, height=composite_height)
-        
-        # Calculate font size based on composite height
-        font_size = max(8, int(composite_height * 0.1))
-        font = ("Arial", font_size)
+        # Bind resize event to adjust font size
+        self.frame.bind("<Configure>", self.adjust_font_size)
 
-        # Update font for each label and entry
-        self.label_day.config(font=font)
-        self.entry_start.config(font=font)
-        self.entry_end.config(font=font)
-        self.entry_break.config(font=font)
-        self.label_total.config(font=font)
+    def adjust_font_size(self, event):
+        # Calculate font size based on the height of the Day_Widget frame
+        font_size = int(event.height * self.font_scale_factor)
+
+        # Apply calculated font size to each label and entry widget
+        self.label_day.config(font=("Arial", font_size))
+        self.entry_start.config(font=("Arial", font_size))
+        self.entry_end.config(font=("Arial", font_size))
+        self.entry_break.config(font=("Arial", font_size))
+        self.label_total.config(font=("Arial", font_size))
 
 class Info_Panel:
     def __init__(self, parent):
@@ -168,7 +165,7 @@ class MainApp:
         self.composite_widgets = []
         for row in range(2, 8):
             for col in range(7):
-                widget = Day_Widget(self.calendar_frame, width_ratio=1/7, height_ratio=1/6)
+                widget = Day_Widget(self.calendar_frame)
                 widget.frame.grid(row=row, column=col, sticky="nsew", padx=5, pady=5)
                 self.composite_widgets.append(widget)
 
