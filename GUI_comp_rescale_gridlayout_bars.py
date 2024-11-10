@@ -13,7 +13,7 @@ import gui_constants
 
 class Day_Widget(tk.Frame):
     def __init__(self, parent, bg_frame="lightgreen"):
-        super().__init__(master=parent, bg=bg_frame)
+        super().__init__(master=parent, bg=bg_frame, relief="solid", borderwidth=1)
         self.parent = parent
         self.font_scale_factor = 0.1
 
@@ -226,8 +226,7 @@ class Day_Widget(tk.Frame):
 class Info_Panel(tk.Frame):
     def __init__(self, parent):
         """Composite widget containing six labels for displaying information."""
-        super().__init__(master=parent, bg='lightgray')
-        #self.frame = tk.Frame(parent, bg="lightgray")
+        super().__init__(master=parent, bg='lightgray', relief="solid", borderwidth=1)
 
         # Original labels
         self.label_flex_time = tk.Label(self, text="Flex-Time", font=("Arial", 12, "underline"), bg="lightgray")
@@ -251,10 +250,8 @@ class Info_Panel(tk.Frame):
 
 class Sidebar(tk.Frame):
     def __init__(self, parent, width):
-        super().__init__(master=parent, width=width)
+        super().__init__(master=parent, width=width, background="lightgrey")
         """A composite sidebar widget with an Info_Panel and buttons."""
-        #self.frame = tk.Frame(parent, width=width, bg="gray")
-        self.grid_propagate(False)  # Prevents resizing
 
         # Create the Info_Panel at the top of the sidebar
         self.info_panel = Info_Panel(self)
@@ -273,15 +270,36 @@ class Sidebar(tk.Frame):
         self.button_start_work.pack(side="bottom", padx=10, fill="x")
 
 class TopBar(tk.Frame):
-    def __init__(self, parent, height):
-        super().__init__(master=parent, height=height, bg='darkblue')
-        """A composite top bar widget that expands to fit the width of the window."""
-        #self = tk.Frame(parent, bg="darkblue", height=height)
-        self.grid_propagate(False)
+    def __init__(self, parent, height, bg="lightgrey"):
+        super().__init__(master=parent, height=height, bg='lightgrey')
+        """A composite top bar widget that expands to fit the width of the window."""        
+        
+        self.employee_name = tk.StringVar(value="default")
+        self.role = tk.StringVar(value="(Employee)")
+        
+        self.logo = tk.Frame(self, relief="solid", padx=28, bg=bg)
+        self.logo.pack(side='left', fill=tk.X)
 
-        # Logout button on the right side of the top bar
-        self.logout_button = tk.Button(self, text="Logout", font=("Arial", 12), bg="white")
-        self.logout_button.pack(padx=10, pady=10, side="right")  # Align the button to the right side of the bar
+        tk.Label(self.logo, text='STC',
+                 font=gui_constants.EXTRA_LARGE, bg=bg).pack(side='top')
+        tk.Label(self.logo, text='Time Management System',
+                 font=gui_constants.BOLD, bg=bg).pack(side='top')
+
+        self.menu = tk.Frame(self, relief="solid", padx=10, bg=bg)
+        self.menu.pack(side='right', expand=True, fill=tk.BOTH)
+
+        self.logout = tk.Button(
+            self.menu, text="Logout", command=lambda: self.main.logout(),
+            font=("Arial", 12))
+        self.logout.pack(side='right')
+
+        employee = tk.Frame(self.menu, bg=bg)
+        employee.pack(side='right')
+
+        tk.Label(employee, textvariable=self.employee_name,
+                 font=gui_constants.LARGE, bg=bg).pack(side='top')
+        tk.Label(employee, textvariable=self.role, bg=bg).pack(side='top', padx=20)
+        
 
 class MainApp(tk.Frame):
     def __init__(self, parent, main=None):
@@ -302,12 +320,12 @@ class MainApp(tk.Frame):
     def create_sidebar(self):
         # Sidebar in the leftmost column
         self.sidebar = Sidebar(self, width=200)
-        self.sidebar.grid(row=0, column=0, rowspan=2, sticky="nesw")
+        self.sidebar.grid(row=1, column=0, sticky="nesw")
 
     def create_top_bar(self):
         # Top bar in the top row
         self.top_bar = TopBar(self, height=70)
-        self.top_bar.grid(row=0, column=1, sticky="nesw")
+        self.top_bar.grid(row=0, column=0, columnspan=2, sticky="nesw")
 
     def create_calendar_frame(self):
         # Calendar frame for Day_Widget grid area
