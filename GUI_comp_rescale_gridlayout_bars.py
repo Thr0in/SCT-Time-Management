@@ -25,8 +25,6 @@ class Day_Widget(tk.Frame):
         self.var_total_time = tk.StringVar(value=gui_constants.NO_TIME_DATA)
 
         # Create a Frame for the composite widget
-        #self.frame = tk.Frame(parent, bg=bg_frame)
-        self.grid_propagate(False)
 
         vcmd = (self.register(self.on_validate_input), '%P')
         vcmd_end = (self.register(self.on_validate_end), '%P')
