@@ -35,12 +35,9 @@ from datetime import date
 import os.path
 import csv
 
-from calendar_widget import CalendarWidget
-from side_bar import SideBar
 from data_model import WorkTimeEmployee
 from datetime_functions import DatetimeFunctions as dtf
 from login import LoginFrame
-from stc_header import STCHeader
 import GUI_comp_rescale_gridlayout_bars as gui
 import gui_constants
 
@@ -132,7 +129,8 @@ class Timesheet:
             widget.destroy()
 
         self.root.title("Login Screen")
-        self.root.geometry("300x200")
+        self.root.minsize(300, 200)
+        self.root.geometry('300x200')
 
         try:
             os.mkdir(gui_constants.DATA_PATH)
@@ -154,38 +152,33 @@ class Timesheet:
         self.login_frame = LoginFrame(self.root, self)
         self.login_frame.pack(expand=True, fill=tk.BOTH)
 
+        self.root.bind('<Return>', self.login_frame.login)
+
     def create_timesheet_window(self):
         """
         Create the timesheet widgets and initializes them.
         """
         self.login_frame.pack_forget()
 
-        self.root.title("SCT Timesheet Calendar")
-        self.root.geometry('1280x720')  # '1100x815')
+        self.root.title("STC Timesheet Calendar")
         self.root.minsize(1280, 720)
         self.root.protocol("WM_DELETE_WINDOW", lambda: self.on_closing())
 
         self.gui = gui.MainApp(self.root, self)
         self.gui.pack(expand=True, fill=tk.BOTH)
 
-        self.header = self.gui.top_bar  # STCHeader(self.root, self)
-        self.calendar = self.gui.calendar_frame  # CalendarWidget(self.root, self)
-        self.side_bar = self.gui.sidebar  # SideBar(self.root, self)
-
-        #self.header.pack(side='top', fill=tk.X, pady=0)
-        #self.side_bar.pack(side="left", anchor='nw', expand=True, fill=tk.BOTH)
-        #self.calendar.pack(side="left", anchor='ne', expand=True, fill=tk.Y)
-
-        #self.header.employee_name.set(self.current_employee.employee_id)
-        #self.header.role.set('(' + self.current_employee.role + ')')
-
-        #self.change_color(gui_constants.HIGHLIGHT_COLOR, self.header.menu)
-        #self.header.logout.config(bg=gui_constants.DEFAULT_COLOR)
-
+        self.gui.top_bar = self.gui.top_bar
+        self.gui.calendar_frame = self.gui.calendar_frame
+        self.gui.sidebar = self.gui.sidebar
         self.select_month()
+
+        self.gui.top_bar.employee_name.set(self.current_employee.employee_id)
+        self.gui.top_bar.role.set(self.current_employee.role)
 
         day = self.current_employee.get_day(date.today())
         self.print_day(day)
+
+        self.root.bind('<Return>', self.update)
 
     def login(self, user, role='Employee'):
         """
@@ -211,6 +204,13 @@ class Timesheet:
         self.save_employees()
 
         self.create_login_window()
+
+    def update(self, event=None):
+        """
+        Callback method for update button.
+        """
+        self.root.focus_set()
+        self.update_info_panel()
 
     def load_employees(self):
         """
@@ -279,7 +279,7 @@ class Timesheet:
         """
         Updates the flex-time and vacation day information in the sidebar.
         """
-        panel = self.side_bar.info_panel
+        panel = self.gui.sidebar.info_panel
         panel.var_flex_time.set(dtf.time_to_string(
             self, self.current_employee.get_flex_time(), unsigned=False))
 
@@ -459,7 +459,7 @@ class Timesheet:
             else:
                 self.change_color(gui_constants.DEFAULT_COLOR, day)
                 day.label_day.config(bg=gui_constants.HIGHLIGHT_COLOR)
-        self.hide_empty_row()
+        #self.hide_empty_row()
         self.update_from_db()
 
     def log_work_time(self):
@@ -517,13 +517,13 @@ class Timesheet:
             button_label = "End Workday"
         else:
             button_label = "Update Endtime"
-        self.side_bar.button_log_work.config(text=button_label)
+        self.gui.sidebar.button_log_work.config(text=button_label)
 
         if self.current_employee.on_break is not None:
             button_label = "End Break"
         else:
             button_label = "Start Break"
-        self.side_bar.button_log_break.config(text=button_label)
+        self.gui.sidebar.button_log_break.config(text=button_label)
 
     def store_input_data(self, day):
         """

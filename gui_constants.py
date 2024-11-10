@@ -16,4 +16,4 @@ DISABLED_COLOR = 'gray60'
 DEFAULT_COLOR = 'SystemButtonFace'
 
 DEBUG = False
-AUTO_LOGIN = True
+AUTO_LOGIN = False

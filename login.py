@@ -89,6 +89,7 @@ class LoginFrame(tk.Frame):
         self.label_username.pack()
         self.__entry_username = tk.Entry(self)
         self.__entry_username.pack()
+        self.__entry_username.focus_force()
 
         self.label_password = tk.Label(self, text="Passwort:")
         self.label_password.pack()
@@ -98,7 +99,7 @@ class LoginFrame(tk.Frame):
         button_login = tk.Button(self, text="Login", command=self.login)
         button_login.pack(pady=10)
 
-    def login(self):
+    def login(self, event=None):
         """
         Validates the entered username and password.
 
@@ -122,8 +123,8 @@ class LoginFrame(tk.Frame):
                 file_username, file_password, role = user_data
                 if username == file_username and password == file_password:
 
-                    messagebox.showinfo("Login Erfolgreich",
-                                        f"Login Erfolgreich als {username}")
+                    #messagebox.showinfo("Login Erfolgreich",
+                    #                    f"Login Erfolgreich als {username}")
                     self.main.login(username, role)
                     return
                     messagebox.showerror(
