@@ -8,6 +8,7 @@ data/*
 !data/anma.csv
 !data/lamu.csv
 !data/mica.csv
+!data/employees.csv
 .spyproject/config
 dist/*
 build/*

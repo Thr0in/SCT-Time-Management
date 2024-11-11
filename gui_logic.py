@@ -173,7 +173,8 @@ class Timesheet:
         window_pos_y = (self.root.winfo_screenheight()-window_size_y)/2
 
         self.root.title("STC Timesheet Calendar")
-        self.root.geometry('%dx%d+%d+%d' % (window_size_x, window_size_y, window_pos_x, window_pos_y))
+        self.root.geometry('%dx%d+%d+%d' % (window_size_x,
+                           window_size_y, window_pos_x, window_pos_y))
         self.root.minsize(1280, 720)
         self.root.protocol("WM_DELETE_WINDOW", lambda: self.on_closing())
 
@@ -241,6 +242,13 @@ class Timesheet:
                     reader = csv.DictReader(csvfile)
                     for row in reader:
                         self.add_employee(row['Employee ID'])
+
+                        employee = self.employees.get(row['Employee ID'])
+                        employee.amount_vacation_days = int(
+                            row['Vacation Days']) if row['Vacation Days'] else 30
+                        employee.amount_old_vacation_days = int(
+                            row['Old Vacation Days']) if row['Old Vacation Days'] else 0
+
             except Exception as e:
                 print("Error", f"Failed to load employees: {e}")
 
@@ -252,10 +260,23 @@ class Timesheet:
             print("Accessing database...")
         else:
             with open(self.file_path_employees, 'w', newline='') as csvfile:
-                writer = csv.DictWriter(csvfile, fieldnames=['Employee ID'])
+                writer = csv.DictWriter(csvfile, fieldnames=['Employee ID', 'Vacation Days', 'Old Vacation Days'])
                 writer.writeheader()
-                for employee_id in self.employees.keys():
-                    writer.writerow({'Employee ID': employee_id})
+                for employee in self.employees.values():
+                    writer.writerow({'Employee ID': employee.employee_id,
+                                     'Vacation Days': employee.amount_vacation_days,
+                                     'Old Vacation Days': employee.amount_old_vacation_days
+                                     })
+
+    def request_vacation(self):
+        if self.current_employee.amount_old_vacation_days > 0:
+            self.current_employee.amount_old_vacation_days -= 1
+        elif self.current_employee.amount_vacation_days > 0:
+            self.current_employee.amount_vacation_days -= 1
+        else:
+            print("You can't request a day off as you don't have any vacation days left.")
+        self.update_info_panel()
+        self.save_employees()
 
     def store_all_inputs(self):
         """

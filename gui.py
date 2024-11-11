@@ -309,8 +309,8 @@ class Sidebar(tk.Frame):
         self.info_panel.pack(padx=10, pady=10, fill="x")
 
         # Add button directly below the Info_Panel
-        self.button_request_vacation = tk.Button(
-            self, text="Request Vacation", font=("Arial", 12))
+        self.button_request_vacation = tk.Button(self, text="Request Vacation", font=(
+            "Arial", 12), command=lambda: self.request_vacation())
         self.button_request_vacation.pack(padx=10, fill="x")
 
         # Create two buttons at the bottom, stacked on top of each other
@@ -322,6 +322,12 @@ class Sidebar(tk.Frame):
         # Place these buttons at the bottom
         self.button_log_break.pack(side="bottom", padx=10, pady=10, fill="x")
         self.button_log_work.pack(side="bottom", padx=10, fill="x")
+
+    def request_vacation(self):
+        """
+        Callback method for request vacation button.
+        """
+        self.master.main.request_vacation()
 
     def log_time(self):
         """
