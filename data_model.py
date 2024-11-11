@@ -242,7 +242,6 @@ class WorkTimeEmployee():
 
             try:
                 # Create connection to the database
-                # Important: use instance -> db=...
                 db = DatabaseFunctions()
                 db.connect_to_database()
                 
@@ -255,13 +254,17 @@ class WorkTimeEmployee():
             
                 # Populate the working_days dictionary
                 for row in rows:
-                    date_object = dtf.convert_string_to_date(row[0])  # Convert date string to datetime
+                    date_object = dtf.convert_string_to_date(self, row[0])  # Convert date string to datetime
                     day = self.create_day(date_object)
             
-                    # Convert time strings to time objects
-                    day.start_time = dtf.convert_string_to_time(row[1]) if row[1] else None
-                    day.end_time = dtf.convert_string_to_time(row[2]) if row[2] else None
+                    # Handle start_time and end_time by extracting time from datetime string
+                    day.start_time = dtf.convert_string_to_time_from_datetime(self, row[1]) if row[1] else None
+                    day.end_time = dtf.convert_string_to_time_from_datetime(self, row[2]) if row[2] else None
+                    
+                    # Handle break_time
                     day.break_time = float(row[3]) if row[3] else None
+                    
+                    # Handle state
                     day.state = row[4]
             
             # Catch possible errors
@@ -311,8 +314,8 @@ class WorkTimeEmployee():
                 for date_string, day in self.working_days.items():
                     # Ensure that the day has data before saving
                     if day.has_entry():  
-                        # Ensure breaktime is valid, set to None if less than 60 minutes
-                        if day.break_time is not None and day.break_time < 60:
+                        # Ensure breaktime is valid, set to None if less than 15 minutes
+                        if day.break_time is not None and day.break_time < 15:
                             day.break_time = None
                         
                         # Insert or update the database
@@ -324,7 +327,7 @@ class WorkTimeEmployee():
                             day.break_time,
                             day.state  
                         )
-            
+                        
             # Catch possible errors
             except sqlite3.Error as e:
                 print(f"Error saving working days to the database: {e}")
