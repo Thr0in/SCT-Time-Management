@@ -1,6 +1,7 @@
-# Time Management Application
 
-This is a Tkinter-based time management application designed to help users manage workdays, track flex time, request vacation days, and log working hours. The main components of the application include a calendar for tracking working hours, a sidebar for managing flex time and vacation requests, and an information panel displaying current work status.
+# STC Time Management Application
+
+This is a time management and tracking application for employees, built using Python and Tkinter. It allows employees to log their work hours, manage break times, and track their vacation days. The application provides a graphical calendar view for easy navigation and interaction.
 
 ## Table of Contents
 
@@ -17,71 +18,87 @@ This is a Tkinter-based time management application designed to help users manag
 
 ## Features
 
-- **Calendar View**: Displays a grid of day widgets for viewing workdays.
-- **Workday Logging**: Allows users to log start, end, and break times for each day.
-- **Flex Time Tracking**: Calculates accumulated flex time based on work hours.
-- **Vacation Management**: Provides options for managing vacation days.
-- **Persistent Data Storage**: Saves and loads workday data from a CSV file.
+- **Employee Login**: Users log in with their credentials, which are validated against stored data.
+- **Calendar View**: A 6x7 grid calendar displays each day of the month, with entries for work start time, end time, and break time.
+- **Flexible Data Tracking**: Users can log start and end of work, breaks, and view accumulated flex time and vacation days.
+- **Database Integration**: Supports saving and loading workday data to a SQLite database or CSV files.
+- **Customizable Interface**: GUI elements and theme colors can be modified using configuration constants.
 
 ## Modules
 
-### calendar_widget.py
+### 1. `main.py`
+This script launches the STC Time Management Application, initializing the main GUI and setting program options (e.g., enabling debug mode).
 
-The `calendar_widget.py` module creates the main calendar interface, including:
-- `CalendarHeader`: Contains navigation buttons and displays the selected month.
-- `CalendarContent`: Holds the grid of day widgets (`DayWidget` instances).
-- `CalendarWidget`: The main calendar frame that combines the header and content sections.
+### 2. `login.py`
+Defines the login screen interface:
+- **LoginFrame**: Presents the login GUI, allowing users to enter and validate their credentials.
+- **login()**: Validates username and password against stored data.
 
+### 3. `data_model.py`
+Handles employee workday data:
+- **WorkingDay**: Represents a workday with attributes such as start time, end time, break time, and state (e.g., “vacation”).
+- **WorkTimeEmployee**: Manages an employee’s workdays, calculates flex time, and tracks vacation days. Includes methods for loading, saving, and retrieving workday data.
 
-### day_widget.py
+### 4. `database_functions.py`
+Provides SQLite database functions:
+- **connect_to_database()**: Establishes a connection to the SQLite database and creates tables if needed.
+- **insert_into_database()** and **edit_in_database()**: Insert and update timesheet records.
+- **delete_from_database()**: Deletes records based on date.
+- **disconnect_from_database()**: Closes the database connection.
 
-The `day_widget.py` module defines the `DayWidget` class, which represents individual days in the calendar. Each `DayWidget` allows users to view and edit:
-- **Day Number**: The specific day within a month.
-- **Start Time**: Time the workday started.
-- **End Time**: Time the workday ended.
-- **Break Time**: Total break time taken during the day.
-- **Total Time**: Total time worked for the day, minus breaks.
+### 5. `datetime_functions.py`
+Contains utility functions for date and time manipulation:
+- **get_current_date()** and **get_current_time()**: Retrieve the current date and time.
+- **convert_string_to_time()** and **convert_string_to_date()**: Convert strings to date/time objects.
+- **get_time_difference()**: Calculates time difference in seconds.
+- **time_to_string()**: Formats time values as strings.
 
+### 6. `gui_constants.py`
+Defines constants for the application, including:
+- GUI color themes, font settings, and data paths.
+- Feature toggles such as **DEBUG** mode and **AUTO_LOGIN**.
 
-### data_model.py
+### 7. `gui.py`
+Constructs the GUI components:
+- **Day_Widget**: A widget representing a single day, allowing entry of work start, end, break, and total times.
+- **Info_Panel**: Displays flex time and vacation days.
+- **Sidebar** and **TopBar**: Provide additional controls and display user information.
+- **MainApp**: The main application container, organizing the layout of the calendar, sidebar, and top bar.
 
-The `data_model.py` module includes the data handling and logic classes:
-- `WorkingDay`: Represents a single working day, with attributes for start time, end time, break time, and state (e.g., default, sick, vacation).
-- `WorkTimeEmployee`: Manages the data for an employee, including vacation days and working day records. Provides methods for loading and saving workday data to CSV, and calculates flex time based on working hours.
+### 8. `gui_logic.py`
+Implements the main logic for the STC application:
+- **Timesheet**: Manages the login, calendar, and data handling. Provides functions for logging workday start/end, tracking breaks, loading and saving data, and navigating the calendar.
 
+## Installation
 
-### side_bar.py
-
-The `side_bar.py` module provides the sidebar interface, which includes:
-- `SideBar`: Contains buttons for requesting vacation and logging work/break times.
-- `InfoPanel`: Displays information such as remaining flex time, vacation days, and carryover vacation days from previous years.
-
-
-### test_main.py
-
-The `test_main.py` script is the main entry point for running the application. It initializes the Tkinter root window, creates instances of `CalendarWidget` and `SideBar`, and adds test data to display sample work hours for the first day.
-
-
-## Getting Started
-
-1. Clone this repository to your local machine:
+1. Clone or download the repository.
+2. Install the required libraries (if any are specified in requirements.txt) using:
    ```bash
-   git clone https://github.com/Thr0in/SCT-Time-Management.git
-2. Navigate to the project directory:
-   ```bash
-   cd SCT-Time-Management
+   pip install -r requirements.txt
+   ```
 3. Run the application:
    ```bash
-   python test_main.py
+   python main.py
+   ```
 
 ## Usage
 
-- **Calendar**: Navigate through months using the < and > buttons in the calendar header. Click on any day to log working hours.
-- **Sidebar**: Use the "Request Vacation" and "Start Workday/Break" buttons to log activities.
-- **Information Panel**: View your flex time and remaining vacation days.
-- **Data Persistence**: Working days are saved in a CSV file (<employee_id>.csv) for persistence.
+1. **Login**: Enter credentials on the login screen.
+2. **Log Work Time**: Use the calendar interface to log work start/end times and breaks.
+3. **View Data**: Track accumulated flex time and vacation days in the sidebar.
+4. **Save Data**: Data is saved automatically when you log out or exit the application.
 
-## Requirements
+## Configuration
 
-- Python 3.x
-- Tkinter (usually included with Python)
+Settings in `gui_constants.py` allow customization:
+- **DEBUG**: Enables debug output for troubleshooting.
+- **AUTO_LOGIN**: Allows skipping the login screen.
+- **USE_DATABASE**: Switch between using SQLite or CSV files for data storage.
+
+## Authors
+
+Developed by Luka, Jnath, Lpasd, Tim, and Danny.
+
+## License
+
+MIT License
