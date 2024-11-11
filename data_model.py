@@ -143,6 +143,7 @@ class WorkTimeEmployee():
             The unique ID of the employee (default is "default").
         """
         self.employee_id = employee_id
+        self.name = 'default'
         self.role = 'employee'
         self.file_path = os.path.join(
             gui_constants.DATA_PATH, self.employee_id + ".csv")
@@ -225,7 +226,7 @@ class WorkTimeEmployee():
                 flex_time += float(day.get_work_time() or 0)
 
 # Deduct expected daily working hours if the day is not "sick" or "vacation"
-                if day.state not in ("sick", "vacation"):
+                if day.state not in ("sick", "vacation") and day.date.weekday() < 5:
                     flex_time -= (gui_constants.DAILY_WORKING_HOURS * 3600.0)
         return flex_time
 
@@ -274,6 +275,8 @@ class WorkTimeEmployee():
                 writer.writeheader()
                 for date_string, day in self.working_days.items():
                     if day.has_entry():
+                        if day.break_time is not None and day.break_time < 60:
+                            day.break_time = None
                         writer.writerow({
                             'Date': date_string,
                             'Start Time': dtf.time_object_to_string(self, day.start_time),

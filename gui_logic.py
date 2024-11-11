@@ -34,6 +34,7 @@ import calendar
 from datetime import date
 import os.path
 import csv
+import dateutil.relativedelta as rdelta
 
 from data_model import WorkTimeEmployee
 from datetime_functions import DatetimeFunctions as dtf
@@ -167,10 +168,11 @@ class Timesheet:
         self.gui = gui.MainApp(self.root, self)
         self.gui.pack(expand=True, fill=tk.BOTH)
 
-        self.change_color(gui_constants.DEFAULT_COLOR, self.gui.sidebar.info_panel)
+        self.change_color(gui_constants.DEFAULT_COLOR,
+                          self.gui.sidebar.info_panel)
         self.select_month()
 
-        self.gui.top_bar.employee_name.set(self.current_employee.employee_id)
+        self.gui.top_bar.employee_name.set(self.current_employee.name)
         self.gui.top_bar.role.set(self.current_employee.role)
 
         day = self.current_employee.get_day(date.today())
@@ -178,7 +180,7 @@ class Timesheet:
 
         self.root.bind('<Return>', self.update)
 
-    def login(self, user, role='Employee'):
+    def login(self, user, role='Employee', name='default'):
         """
         Logs in a user. Has to exist in userdata.txt
 
@@ -190,6 +192,7 @@ class Timesheet:
         self.add_employee(user)
         self.current_employee = self.employees.get(user)
         self.current_employee.role = role
+        self.current_employee.name = name
 
         self.create_timesheet_window()
 
@@ -304,7 +307,7 @@ class Timesheet:
         """
         self.current_employee.load_working_days()
         for day in self.gui.days:
-            current_date = self.get_date_of_day(day)
+            current_date = day.date
             if current_date is not None:
                 try:
                     work_day = self.current_employee.get_day(current_date)
@@ -320,7 +323,7 @@ class Timesheet:
         self.update_info_panel()
         self.update_buttons()
 
-    def get_date_of_day(self, day):
+    def get_old_date_of_day(self, day):
         """
         Returns the date currently displayed by the specified DayWidget.
 
@@ -344,6 +347,25 @@ class Timesheet:
                 day=int(day.var_day.get()))
 
         return current_date
+
+    def get_date_month_delta(self, month_delta):
+        """
+        Returns the date with the same day as
+        the selected date in another month.
+
+        Parameters
+        ----------
+        month_delta : int
+            How many months to subtract or add to the current date.
+
+        Returns
+        -------
+        datetime.date
+            The date object differing by month_delta
+            months from the selected date.
+
+        """
+        return self.selected_date + rdelta.relativedelta(months=month_delta)
 
     def add_employee(self, employee_id):
         """
@@ -409,14 +431,15 @@ class Timesheet:
         Conditionally hides the last row of the
         calendar if it contains only empty days.
         """
-        month_days_flat = sum(calendar.monthcalendar(
-            self.selected_date.year, self.selected_date.month), [])
-        if len(month_days_flat) <= 35:
-            for i in range(35, 42):
-                self.gui.days[i].grid_forget()
-        else:
-            for i in range(35, 42):
-                self.gui.days[i].grid()
+        if gui_constants.SHOW_ONLY_MINIMUM_DAYS:
+            month_days_flat = sum(calendar.monthcalendar(
+                self.selected_date.year, self.selected_date.month), [])
+            if len(month_days_flat) <= 35:
+                for i in range(35, 42):
+                    self.gui.days[i].grid_remove()
+            else:
+                for i in range(35, 42):
+                    self.gui.days[i].grid()
 
     def select_month(self, date_object=date.today()):
         """
@@ -441,24 +464,66 @@ class Timesheet:
             self.selected_date.strftime("%B %Y"))
 
         month_days = self.get_month_days(date_object)
+        month_days_last = self.get_month_days(self.get_date_month_delta(-1))
+        month_days_next = self.get_month_days(self.get_date_month_delta(1))
 
-        for day, month_day in zip(self.gui.days, month_days):
+        leading_days = 0
+        for i, day in enumerate(month_days):
+            if day == 0:
+                if i < 7:
+                    leading_days += 1
+
+        month_days_last = self.strip_zero_from_list(month_days_last)
+        month_days_next = self.strip_zero_from_list(month_days_next)
+        month_length = len(self.strip_zero_from_list(month_days))
+
+        for i, (day, month_day) in enumerate(zip(self.gui.days, month_days)):
             day.var_day.set(month_day)
+            current_date = self.get_old_date_of_day(day)
 
             if month_day == 0:
-                day.var_day.set('')
+                if i < 7:
+                    n = month_days_last[i - leading_days]
+                    day.var_day.set(n)
+                    current_date = self.get_date_month_delta(-1).replace(day=n)
+                else:
+                    n = month_days_next[i - (leading_days + month_length)]
+                    day.var_day.set(n)
+                    current_date = self.get_date_month_delta(1).replace(day=n)
+                    # day.var_day.set('')
                 self.change_color(gui_constants.DISABLED_COLOR, day)
+                day.label_day.config(bg=gui_constants.WEEKEND_COLOR)
 
             elif (self.selected_date.replace(day=month_day) == date.today()):
                 self.change_color(gui_constants.HIGHLIGHT_COLOR, day)
                 day.label_day.config(bg=gui_constants.DEFAULT_COLOR)
-                #day.config(bg=gui_constants.HIGHLIGHT_COLOR)
+                # day.config(bg=gui_constants.HIGHLIGHT_COLOR)
 
             else:
                 self.change_color(gui_constants.DEFAULT_COLOR, day)
+                if current_date.weekday() > 4:
+                    self.change_color(gui_constants.WEEKEND_COLOR, day)
                 day.label_day.config(bg=gui_constants.HIGHLIGHT_COLOR)
-        #self.hide_empty_row()
+
+            day.date = current_date
+        self.hide_empty_row()
         self.update_from_db()
+
+    def strip_zero_from_list(self, array):
+        """
+        Returns the provided list without any zeros.
+
+        Parameters
+        ----------
+        array : list
+            A  list possibly containing zeros.
+
+        Returns
+        -------
+        list
+            The input list without zeros.
+        """
+        return [value for value in array if value != 0]
 
     def log_work_time(self):
         """
@@ -532,7 +597,7 @@ class Timesheet:
         day : DayWidget
             The day widget which data to store.
         """
-        current_date = self.get_date_of_day(day)
+        current_date = day.date
         if current_date is not None:
             try:
                 work_day = self.current_employee.create_day(current_date)
@@ -556,7 +621,9 @@ class Timesheet:
                 try:
                     break_time = dtf.convert_string_to_time(
                         self, day.var_break_time.get())
-                    work_day.break_time = dtf.time_in_seconds(self, break_time)
+                    break_time = dtf.time_in_seconds(self, break_time)
+                    if break_time > 59:
+                        work_day.break_time = break_time
                     if gui_constants.DEBUG:
                         print(work_day.break_time)
                 except Exception as e:
@@ -578,7 +645,7 @@ class Timesheet:
         day : DayWidget
             The day widget which data to delete.
         """
-        current_date = self.get_date_of_day(day)
+        current_date = day.date
         if current_date is not None:
             work_day = self.current_employee.create_day(current_date)
             if day.var_start_time.get() in (gui_constants.NO_TIME_DATA, ''):

@@ -18,6 +18,7 @@ class Day_Widget(tk.Frame):
         super().__init__(master=parent, bg=bg_frame, relief="solid", borderwidth=1)
         self.parent = parent
         self.font_scale_factor = 0.1
+        self.date = None
 
         # StringVars labels
         self.var_day = tk.StringVar(value=f"{0:02}")
@@ -198,16 +199,15 @@ class Day_Widget(tk.Frame):
         time_object : datetime.time
             The start time to be displayed.
         """
-# =============================================================================
-#         if time_object is None:
-#             time_string = 'start'
-#             self.entry_start.config(fg=gui_constants.DISABLED_COLOR)
-#         else:
-#             time_string = self.get_verified_time_string(time_object)
-#
-#             self.entry_start.config(fg='black')
-# =============================================================================
-        self.var_start_time.set(self.get_verified_time_string(time_object))
+        if time_object is None and gui_constants.USE_TEXT_HINTS:
+            time_string = 'start'
+            self.entry_start.config(fg=gui_constants.TEXT_HINT_COLOR)
+        else:
+            time_string = self.get_verified_time_string(time_object)
+
+            self.entry_start.config(fg='black')
+
+        self.var_start_time.set(time_string)
 
     def set_end_time(self, time_object):
         """
@@ -218,7 +218,15 @@ class Day_Widget(tk.Frame):
         time_object : datetime.time
             The end time to be displayed.
         """
-        self.var_end_time.set(self.get_verified_time_string(time_object))
+        if time_object is None and gui_constants.USE_TEXT_HINTS:
+            time_string = 'end'
+            self.entry_end.config(fg=gui_constants.TEXT_HINT_COLOR)
+        else:
+            time_string = self.get_verified_time_string(time_object)
+
+            self.entry_end.config(fg='black')
+
+        self.var_end_time.set(time_string)
 
     def set_break_time(self, time_in_seconds):
         """
@@ -229,7 +237,15 @@ class Day_Widget(tk.Frame):
         time_in_seconds : int
             The break time in seconds.
         """
-        self.var_break_time.set(dtf.time_to_string(self, time_in_seconds))
+        if time_in_seconds is None and gui_constants.USE_TEXT_HINTS:
+            time_string = 'break'
+            self.entry_break.config(fg=gui_constants.TEXT_HINT_COLOR)
+        else:
+            time_string = dtf.time_to_string(self, time_in_seconds)
+
+            self.entry_break.config(fg='black')
+
+        self.var_break_time.set(time_string)
 
     def set_total_time(self, time_in_seconds):
         """
@@ -246,7 +262,8 @@ class Day_Widget(tk.Frame):
 class Info_Panel(tk.Frame):
     def __init__(self, parent):
         """Composite widget containing six labels for displaying information."""
-        super().__init__(master=parent, bg=gui_constants.BACKGROUND_COLOR, relief="solid", borderwidth=1)
+        super().__init__(master=parent, bg=gui_constants.BACKGROUND_COLOR,
+                         relief="solid", borderwidth=1)
 
         # Data StringVars
         self.var_flex_time = tk.StringVar(value="+ 00:00")
@@ -283,7 +300,8 @@ class Info_Panel(tk.Frame):
 
 class Sidebar(tk.Frame):
     def __init__(self, parent, width):
-        super().__init__(master=parent, width=width, background=gui_constants.BACKGROUND_COLOR)
+        super().__init__(master=parent, width=width,
+                         background=gui_constants.BACKGROUND_COLOR)
         """A composite sidebar widget with an Info_Panel and buttons."""
 
         # Create the Info_Panel at the top of the sidebar
@@ -343,7 +361,7 @@ class TopBar(tk.Frame):
         self.logout.pack(side='right')
 
         employee = tk.Frame(self.menu, bg=bg)
-        employee.pack(side='right')
+        employee.pack(side='right', padx=20)
 
         tk.Label(employee, textvariable=self.employee_name,
                  font=gui_constants.LARGE, bg=bg).pack(side='top')
@@ -380,7 +398,7 @@ class MainApp(tk.Frame):
 
     def create_calendar_frame(self):
         # Calendar frame for Day_Widget grid area
-        self.calendar_frame = tk.Frame(self, bg=gui_constants.HIGHLIGHT_COLOR)
+        self.calendar_frame = tk.Frame(self, bg=gui_constants.ACCENT_COLOR)
         self.calendar_frame.grid(
             row=1, column=1, sticky="nsew", padx=10, pady=10)
 
@@ -397,7 +415,7 @@ class MainApp(tk.Frame):
             row=0, column=0, sticky="new", padx=5, pady=5)
 
         self.label_current_month = tk.Label(self.calendar_frame, font=(
-            "Arial", 18, "bold"), bg=gui_constants.HIGHLIGHT_COLOR, textvariable=self.var_selected_month)
+            "Arial", 18, "bold"), bg=gui_constants.ACCENT_COLOR, textvariable=self.var_selected_month)
         self.label_current_month.grid(
             row=0, column=1, columnspan=5, sticky="nsew")
 
@@ -411,7 +429,7 @@ class MainApp(tk.Frame):
                         "Thursday", "Friday", "Saturday", "Sunday"]
         for i, day in enumerate(days_of_week):
             day_label = tk.Label(self.calendar_frame,
-                                 text=day, font=("Arial", 14), bg=gui_constants.HIGHLIGHT_COLOR)
+                                 text=day, font=("Arial", 14), bg=gui_constants.ACCENT_COLOR)
             day_label.grid(row=1, column=i, sticky="nsew")
 
         # Create and place Day_Widget instances
