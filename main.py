@@ -11,8 +11,5 @@ import gui_constants
 
 # Start STC time management program
 if __name__ == "__main__":
-    # gui_constants.DEBUG = True
-    # gui_constants.AUTO_LOGIN = True
-    gui_constants.USE_TEXT_HINTS = False
-    gui_constants.SHOW_ONLY_MINIMUM_DAYS = True
+    #gui_constants.AUTO_LOGIN = True
     app = Timesheet()
