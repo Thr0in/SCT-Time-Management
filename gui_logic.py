@@ -108,13 +108,19 @@ class Timesheet:
         selected date, adds a default employee,
         and starts the main loop.
         """
+        self.run()
+
+    def run(self):
+        """
+        Creates the main window provided by the os' window manager.
+        """
         self.selected_date = date.today()
         self.root = tk.Tk()
 
         self.create_login_window()
 
         if gui_constants.AUTO_LOGIN:
-            self.login('test')
+            self.login('default')
 
         self.root.mainloop()
 
@@ -127,8 +133,8 @@ class Timesheet:
             widget.destroy()
 
         self.root.title("Login Screen")
-        self.root.minsize(300, 200)
-        self.root.maxsize(320, 210)
+        self.root.geometry('300x200')
+        self.root.resizable(False, False)
 
         try:
             os.mkdir(gui_constants.DATA_PATH)
@@ -159,8 +165,8 @@ class Timesheet:
         self.login_frame.pack_forget()
 
         self.root.title("STC Timesheet Calendar")
+        self.root.resizable(True, True)
         self.root.minsize(1280, 720)
-        self.root.maxsize(10000, 10000)
         self.root.protocol("WM_DELETE_WINDOW", lambda: self.on_closing())
 
         self.gui = gui.MainApp(self.root, self)
@@ -203,6 +209,9 @@ class Timesheet:
         self.save_employees()
 
         self.create_login_window()
+
+        self.on_closing()
+        self.run()
 
     def update(self, event=None):
         """
