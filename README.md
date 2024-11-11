@@ -7,14 +7,18 @@ This is a time management and tracking application for employees, built using Py
 
 - [Features](#features)
 - [Modules](#modules)
-  - [calendar_widget.py](#calendar_widgetpy)
-  - [day_widget.py](#day_widgetpy)
-  - [data_model.py](#data_modelpy)
-  - [side_bar.py](#side_barpy)
-  - [test_main.py](#test_mainpy)
-- [Getting Started](#getting-started)
+  - [calendar_widget.py](#1-mainpy)
+  - [day_widget.py](#2-loginpy)
+  - [data_model.py](#3-data_modelpy)
+  - [side_bar.py](#4-database_functionspy)
+  - [test_main.py](#5-datetime_functionspy)
+  - [gui_constants.py](#6-gui_constantspy)
+  - [gui.py](#7-guipy)
+  - [gui_logic.py](#8-gui_logicpy)
+- [Installation](#installation)
 - [Usage](#usage)
-- [Requirements](#requirements)
+- [Configuration](#configuration)
+- [Authors](#authors)
 
 ## Features
 
@@ -72,11 +76,7 @@ Implements the main logic for the STC application:
 ## Installation
 
 1. Clone or download the repository.
-2. Install the required libraries (if any are specified in requirements.txt) using:
-   ```bash
-   pip install -r requirements.txt
-   ```
-3. Run the application:
+2. Run the application:
    ```bash
    python main.py
    ```
@@ -98,7 +98,3 @@ Settings in `gui_constants.py` allow customization:
 ## Authors
 
 Developed by Luka, Jnath, Lpasd, Tim, and Danny.
-
-## License
-
-MIT License
