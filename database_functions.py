@@ -4,8 +4,13 @@ Created on Thu Nov  7 08:34:07 2024
 
 @author: jnath
 """
+# Database Function Module
+
 import sqlite3
+import datetime
 from datetime_functions import DatetimeFunctions
+
+# ------------------------------------------------------------------------------
 
 class DatabaseFunctions:
     
@@ -35,6 +40,8 @@ class DatabaseFunctions:
                 )
             ''')
     
+    # ------------------------------------------------------------------------------
+    
     # Insert data into the table
     def insert_into_database (self, employee_id, date, starttime, endtime = None, breaktime = None, state = 'default'): # work with default parameters because python does not support overloading
         # Inserts a new record into the timesheet table.
@@ -48,28 +55,37 @@ class DatabaseFunctions:
         try:   
             # Convert strings to datetime objects if needed
             if isinstance(date, str):
-                date = DatetimeFunctions.convert_string_to_date(date)
+                date = DatetimeFunctions.convert_string_to_date(self, date)
             if isinstance(starttime, str):
-                starttime = DatetimeFunctions.convert_string_to_time(starttime)
+                starttime = DatetimeFunctions.convert_string_to_time(self, starttime)
             if isinstance(endtime, str) and endtime: #only converts if endtime exists
-                endtime = DatetimeFunctions.convert_string_to_time(endtime)
+                endtime = DatetimeFunctions.convert_string_to_time(self, endtime)
+                
+            # As datetime.time() objects are not supported in database table:
+            # Conevert to full datetime object by merging with the passed date before inserting into table
+            if isinstance(starttime, datetime.time):
+                starttime = DatetimeFunctions.merge_date_and_time_to_datetime(self, date, starttime)
+            if isinstance(endtime, datetime.time):
+                endtime = DatetimeFunctions.merge_date_and_time_to_datetime(self, date, endtime)
             
             # Calculate Workhours if endtime exists
             if endtime is None:
                 workhours = None
             else:
-                workhours = DatetimeFunctions.get_time_difference(starttime, endtime)
+                workhours = DatetimeFunctions.get_time_difference(self, starttime, endtime)
+                if isinstance(workhours, datetime.time):
+                    workhours = DatetimeFunctions.merge_date_and_time_to_datetime(self, date, workhours)
                 
                 
             # Check if an entry for the passed date already exists,
-            # if so, update the entry instead of creating a new one
+            # If so, update the entry instead of creating a new one
             
             # Check if employee and date already exists in timesheet table
             self.c.execute('''
                 SELECT * FROM timesheet WHERE employee_id = ? AND date = ?
             ''', (employee_id, date))
             
-            # fetch row, if it exists
+            # Fetch row, if it exists
             existing_entry = self.c.fetchone()  # fetch row, if it exists
             
             # If record already exists then update it
@@ -94,23 +110,25 @@ class DatabaseFunctions:
             # Raise Error
             raise sqlite3.Error(f"Error inserting into database: {e}")
     
+    # ------------------------------------------------------------------------------
+    
     # Edit data in the table of the database
     def edit_in_database (self, employee_id, date, starttime, endtime = None, breaktime = None, state = 'default'):
         # Try to update data in databse
         try:   
             # Convert strings to datetime objects if needed
             if isinstance(date, str):
-                date = DatetimeFunctions.convert_string_to_date(date)
+                date = DatetimeFunctions.convert_string_to_date(self, date)
             if isinstance(starttime, str):
-                starttime = DatetimeFunctions.convert_string_to_time(starttime)
+                starttime = DatetimeFunctions.convert_string_to_time(self, starttime)
             if isinstance(endtime, str) and endtime: #only converts if endtime exists
-                endtime = DatetimeFunctions.convert_string_to_time(endtime)
+                endtime = DatetimeFunctions.convert_string_to_time(self, endtime)
             
             # Calculate Workhours if endtime exists
             if endtime is None:
                 workhours = None
             else:
-                workhours = DatetimeFunctions.get_time_difference(starttime, endtime)
+                workhours = DatetimeFunctions.get_time_difference(self, starttime, endtime)
             
             # Update the timesheet record for the given date
             self.c.execute('''
@@ -131,14 +149,16 @@ class DatabaseFunctions:
             # Raise Error
             raise sqlite3.Error(f"Error updating database: {e}")
         
+    # ------------------------------------------------------------------------------
+    
     # Delete data from database            
-    def delete_from_database(self, date):
+    def delete_from_database(self, employee_id, date):
         try:
             # Delete a record from the timesheet table where the date matches
             self.c.execute('''
                 DELETE FROM timesheet
-                WHERE date = ?
-            ''', (date,))
+                WHERE employee_id = ? AND date = ?
+            ''', (employee_id, date))
             
             # Commit the changes to the database
             self.conn.commit()
@@ -156,6 +176,8 @@ class DatabaseFunctions:
                 # Raise Error
                 raise sqlite3.Error(f"Error deleting from database: {e}")
         
+    # ------------------------------------------------------------------------------
+    
     # Disconnect from database
     def disconnect_from_database(self):
         # Step 5: Close the connection to the database
