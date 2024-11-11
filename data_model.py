@@ -2,7 +2,7 @@
 """
 Created on Tue Nov  5 16:17:50 2024
 
-@author: Luka
+@author: Luka, jnath
 """
 
 import datetime as dt
