@@ -111,9 +111,6 @@ class Timesheet:
         self.selected_date = date.today()
         self.root = tk.Tk()
 
-        self.root.title("Login Screen")
-        self.root.geometry("300x200")
-
         self.create_login_window()
 
         if gui_constants.AUTO_LOGIN:
@@ -131,7 +128,7 @@ class Timesheet:
 
         self.root.title("Login Screen")
         self.root.minsize(300, 200)
-        self.root.geometry('300x200')
+        self.root.maxsize(320, 210)
 
         try:
             os.mkdir(gui_constants.DATA_PATH)
@@ -163,6 +160,7 @@ class Timesheet:
 
         self.root.title("STC Timesheet Calendar")
         self.root.minsize(1280, 720)
+        self.root.maxsize(10000, 10000)
         self.root.protocol("WM_DELETE_WINDOW", lambda: self.on_closing())
 
         self.gui = gui.MainApp(self.root, self)
