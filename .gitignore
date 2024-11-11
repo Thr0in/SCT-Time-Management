@@ -5,4 +5,7 @@ data.csv
 default.csv
 data/*
 !data/userdata.txt
+!data/anma.csv
+!data/lamu.csv
+!data/mica.csv
 .spyproject/config

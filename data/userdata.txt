@@ -1,5 +1,8 @@
-Mitarbeiter,password123,Employee
-SuperVisor,secure456,Super Visor
-Chef,strong789,CEO
-test,test,Admin
-default,123,Employee
+Employee,password123,Employee,Emil Ernst
+SuperVisor,secure456,Supervisor,Sara Vogt
+Chief,strong789,CEO,Clara E. Otto
+test,test,Admin,Armin Albrecht
+default,123,Employee,Default
+lamu,123,Human Resources,Laura Mueller
+mica,123,Supervisor,Miguel Castro
+anma,123,Employee,Ana Martinez
