@@ -239,7 +239,7 @@ class WorkTimeEmployee():
             print("Accessing database...")
             try:
                 # Create connection to the database
-                DatabaseFunctions.connect_to_database()
+                DatabaseFunctions.connect_to_database(self)
                 
                 # Query to get all working days from the timesheet table for the employee
                 DatabaseFunctions.c.execute('''
@@ -299,7 +299,7 @@ class WorkTimeEmployee():
 
         try:
             # Create connection to the database
-            DatabaseFunctions.connect_to_database()
+            DatabaseFunctions.connect_to_database(self)
 
             for date_string, day in self.working_days.items():
                 if day.has_entry():  # Ensure that the day has data before saving
