@@ -132,9 +132,12 @@ class Timesheet:
         for widget in self.root.winfo_children():
             widget.destroy()
 
+        window_pos_x = (self.root.winfo_screenwidth()-300)/2
+        window_pos_y = (self.root.winfo_screenheight()-200)/2
+
         self.root.title("Login Screen")
-        self.root.geometry('300x200')
-        self.root.resizable(False, False)
+        self.root.minsize(300, 200)
+        self.root.geometry('300x200+%d+%d' % (window_pos_x, window_pos_y))
 
         try:
             os.mkdir(gui_constants.DATA_PATH)
@@ -164,8 +167,13 @@ class Timesheet:
         """
         self.login_frame.pack_forget()
 
+        window_size_x = self.root.winfo_screenwidth()/2
+        window_size_y = self.root.winfo_screenheight()/2
+        window_pos_x = (self.root.winfo_screenwidth()-window_size_x)/2
+        window_pos_y = (self.root.winfo_screenheight()-window_size_y)/2
+
         self.root.title("STC Timesheet Calendar")
-        self.root.resizable(True, True)
+        self.root.geometry('%dx%d+%d+%d' % (window_size_x, window_size_y, window_pos_x, window_pos_y))
         self.root.minsize(1280, 720)
         self.root.protocol("WM_DELETE_WINDOW", lambda: self.on_closing())
 
