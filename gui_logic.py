@@ -214,6 +214,7 @@ class Timesheet:
         """
         self.store_all_inputs()
         self.current_employee.save_working_days()
+        self.current_employee = self.employees.get('default')
         self.save_employees()
 
         self.create_login_window()
