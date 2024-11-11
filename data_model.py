@@ -8,7 +8,9 @@ Created on Tue Nov  5 16:17:50 2024
 import datetime as dt
 import os.path
 import csv
+import sqlite3
 
+from database_functions import DatabaseFunctions
 from datetime_functions import DatetimeFunctions as dtf
 import gui_constants
 
@@ -236,40 +238,40 @@ class WorkTimeEmployee():
         'Start Time', 'End Time', 'Break Time', and 'State'.
         """
         if gui_constants.USE_DATABASE:
-            print("Accessing database...")
-                        
+            #print("Accessing database...")
+
             try:
                 # Create connection to the database
                 db = DatabaseFunctions()
                 db.connect_to_database()
-                
+
                 # Query to get all working days from the timesheet table for the employee
                 db.c.execute('''
                     SELECT date, starttime, endtime, breaktime, state FROM timesheet
                     WHERE employee_id = ?
                 ''', (self.employee_id,))
-            
+
                 # Fetch all results
                 rows = db.c.fetchall()
-            
+
                 # Populate the working_days dictionary
                 for row in rows:
                     date_object = dtf.convert_string_to_date(self, row[0])  # Convert date string to datetime
                     day = self.create_day(date_object)
-            
+
                     # Convert time strings to time objects
                     day.start_time = dtf.convert_string_to_time(self, row[1]) if row[1] else None
                     day.end_time = dtf.convert_string_to_time(self, row[2]) if row[2] else None
                     day.break_time = float(row[3]) if row[3] else None
                     day.state = row[4]
-            
+
             except sqlite3.Error as e:
                 print(f"Error loading working days from the database: {e}")
-            
+
             finally:
                 # Ensure database connection is closed even in case of error
                 db.disconnect_from_database()
-       
+
         else:
             try:
                 with open(self.file_path, 'r') as csvfile:
@@ -297,22 +299,22 @@ class WorkTimeEmployee():
         'Start Time', 'End Time', 'Break Time', and 'State'.
         """
         if gui_constants.USE_DATABASE:
-            print("Accessing database...")
+            #print("Accessing database...")
 
-            try: 
+            try:
                 # Create connection to the database
                 db = DatabaseFunctions()
                 db.connect_to_database()
-    
+
                 for date_string, day in self.working_days.items():
                     if day.has_entry():  # Ensure that the day has data before saving
                         # Ensure breaktime is valid, set to None if less than 60 minutes
                         if day.break_time is not None and day.break_time < 60:
                             day.break_time = None
-                        
+
                         # Insert or update the database
                         db.insert_into_database(
-                            self.employee_id, 
+                            self.employee_id,
                             date_string,
                             day.start_time,
                             day.end_time,
@@ -321,7 +323,7 @@ class WorkTimeEmployee():
 
             except sqlite3.Error as e:
                 print(f"Error saving working days to the database: {e}")
-        
+
             finally:
                 # Ensure database connection is closed even in case of error
                 db.disconnect_from_database()

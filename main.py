@@ -12,4 +12,5 @@ import gui_constants
 # Start STC time management program
 if __name__ == "__main__":
     #gui_constants.AUTO_LOGIN = True
+    gui_constants.USE_DATABASE = True
     app = Timesheet()
