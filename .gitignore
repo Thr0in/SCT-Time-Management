@@ -9,3 +9,5 @@ data/*
 !data/lamu.csv
 !data/mica.csv
 .spyproject/config
+dist/*
+build/*
