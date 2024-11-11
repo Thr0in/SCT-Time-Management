@@ -21,23 +21,28 @@ class DatabaseFunctions:
         #conn and c should be instance attributes of the class, so it can be used across different methods -> self.
         
         # Create a table (if it doesn't already exist)
-        self.c.execute('''
-            CREATE TABLE IF NOT EXISTS timesheet (
-                date DATE,
-                starttime DATETIME,
-                endtime DATETIME,
-                workhours DATETIME,
-                breaktime DATETIME        
-            )
-        ''')
+        with self.conn:
+        # with: Automatically commits/rollbacks transactions
+            self.c.execute('''
+                CREATE TABLE IF NOT EXISTS timesheet (
+                    employee_id TEXT,
+                    date DATE,
+                    starttime DATETIME,
+                    endtime DATETIME,
+                    workhours DATETIME,
+                    breaktime FLOAT,
+                    state TEXT
+                )
+            ''')
     
     # Insert data into the table
-    def insert_into_database (self, date, starttime, endtime = None, breaktime = None): # work with default parameters because python does not support overloading
+    def insert_into_database (self, employee_id, date, starttime, endtime = None, breaktime = None, state = 'default'): # work with default parameters because python does not support overloading
         # Inserts a new record into the timesheet table.
         # - date: The date of the work entry (required).
         # - starttime: The start time of the work (required).
         # - endtime: The end time of the work (optional, can be None).
         # - breaktime: The break time (optional, can be None).
+        # - state: sick day or normal working day (default: 'default')
         
         # Try to insert data into databse
         try:   
@@ -48,8 +53,6 @@ class DatabaseFunctions:
                 starttime = DatetimeFunctions.convert_string_to_time(starttime)
             if isinstance(endtime, str) and endtime: #only converts if endtime exists
                 endtime = DatetimeFunctions.convert_string_to_time(endtime)
-            if isinstance(breaktime, str) and breaktime: #only converts if breaktime exists
-                breaktime = DatetimeFunctions.convert_string_to_time(breaktime)
             
             # Calculate Workhours if endtime exists
             if endtime is None:
@@ -61,10 +64,10 @@ class DatabaseFunctions:
             # Check if an entry for the passed date already exists,
             # if so, update the entry instead of creating a new one
             
-            # Check if date already exists in timesheet table
+            # Check if employee and date already exists in timesheet table
             self.c.execute('''
-                SELECT * FROM timesheet WHERE date = ?
-            ''', (date,))
+                SELECT * FROM timesheet WHERE employee_id = ? AND date = ?
+            ''', (employee_id, date))
             
             # fetch row, if it exists
             existing_entry = self.c.fetchone()  # fetch row, if it exists
@@ -72,14 +75,14 @@ class DatabaseFunctions:
             # If record already exists then update it
             if existing_entry:
                 
-                self.edit_in_database (date, starttime, endtime, breaktime)
+                self.edit_in_database (employee_id, date, starttime, endtime, breaktime, state)
                 print(f"Record for date {date} updated successfully.")
             else:
                 
             
                 # Insert data into databse
-                self.c.execute("INSERT INTO timesheet (date, starttime, endtime, workhours, breaktime) VALUES (?, ?, ?, ?, ?)", 
-                          (date, starttime, endtime, workhours, breaktime))
+                self.c.execute("INSERT INTO timesheet (employee_id, date, starttime, endtime, workhours, breaktime, state) VALUES (?, ?, ?, ?, ?, ?, ?)", 
+                          (employee_id, date, starttime, endtime, workhours, breaktime, state))
                 
                 # Commit the changes to the database
                 self.conn.commit()
@@ -92,7 +95,7 @@ class DatabaseFunctions:
             raise sqlite3.Error(f"Error inserting into database: {e}")
     
     # Edit data in the table of the database
-    def edit_in_database (self, date, starttime, endtime = None, breaktime = None):
+    def edit_in_database (self, employee_id, date, starttime, endtime = None, breaktime = None, state = 'default'):
         # Try to update data in databse
         try:   
             # Convert strings to datetime objects if needed
@@ -102,8 +105,6 @@ class DatabaseFunctions:
                 starttime = DatetimeFunctions.convert_string_to_time(starttime)
             if isinstance(endtime, str) and endtime: #only converts if endtime exists
                 endtime = DatetimeFunctions.convert_string_to_time(endtime)
-            if isinstance(breaktime, str) and breaktime: #only converts if breaktime exists
-                breaktime = DatetimeFunctions.convert_string_to_time(breaktime)
             
             # Calculate Workhours if endtime exists
             if endtime is None:
@@ -114,10 +115,10 @@ class DatabaseFunctions:
             # Update the timesheet record for the given date
             self.c.execute('''
                 UPDATE timesheet
-                SET starttime = ?, endtime = ?, workhours = ?, breaktime = ?
-                WHERE date = ?
+                SET starttime = ?, endtime = ?, workhours = ?, breaktime = ?, state = ?
+                WHERE employee_id = ? AND date = ?
             ''', 
-            (starttime, endtime, workhours, breaktime, date))
+            (starttime, endtime, workhours, breaktime, state, employee_id, date))
     
                 
             # Commit the changes to the database
