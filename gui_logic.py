@@ -269,9 +269,9 @@ class Timesheet:
         """
         Saves all employee working day data and closes the application.
         """
+        self.store_all_inputs()
         for employee in self.employees.values():
             self.current_employee = employee
-            self.store_all_inputs()
             employee.save_working_days()
         self.save_employees()
         self.root.destroy()
