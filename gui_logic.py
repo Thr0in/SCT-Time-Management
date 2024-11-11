@@ -230,44 +230,6 @@ class Timesheet:
         self.root.focus_set()
         self.update_info_panel()
 
-    def load_employees(self):
-        """
-        Loads the list of employees from disk
-        """
-        if gui_constants.USE_DATABASE:
-            print("Accessing database...")
-        else:
-            try:
-                with open(self.file_path_employees, 'r') as csvfile:
-                    reader = csv.DictReader(csvfile)
-                    for row in reader:
-                        self.add_employee(row['Employee ID'])
-
-                        employee = self.employees.get(row['Employee ID'])
-                        employee.amount_vacation_days = int(
-                            row['Vacation Days']) if row['Vacation Days'] else 30
-                        employee.amount_old_vacation_days = int(
-                            row['Old Vacation Days']) if row['Old Vacation Days'] else 0
-
-            except Exception as e:
-                print("Error", f"Failed to load employees: {e}")
-
-    def save_employees(self):
-        """
-        Save the list of employees to disk
-        """
-        if gui_constants.USE_DATABASE:
-            print("Accessing database...")
-        else:
-            with open(self.file_path_employees, 'w', newline='') as csvfile:
-                writer = csv.DictWriter(csvfile, fieldnames=['Employee ID', 'Vacation Days', 'Old Vacation Days'])
-                writer.writeheader()
-                for employee in self.employees.values():
-                    writer.writerow({'Employee ID': employee.employee_id,
-                                     'Vacation Days': employee.amount_vacation_days,
-                                     'Old Vacation Days': employee.amount_old_vacation_days
-                                     })
-
     def request_vacation(self):
         if self.current_employee.amount_old_vacation_days > 0:
             self.current_employee.amount_old_vacation_days -= 1
@@ -284,7 +246,8 @@ class Timesheet:
         """
         for day in self.gui.days:
             self.store_input_data(day)
-        self.current_employee.save_working_days()
+        if not gui_constants.REDUCED_DATABASE_TRAFFIC:
+            self.current_employee.save_working_days()
 
     def on_closing(self):
         """
@@ -463,6 +426,45 @@ class Timesheet:
                 # child has children, go through its children
                 self.change_color(color, child)
 
+    def load_employees(self):
+        """
+        Loads the list of employees from disk
+        """
+        if False:  # gui_constants.USE_DATABASE:
+            print("Accessing database...")
+        else:
+            try:
+                with open(self.file_path_employees, 'r') as csvfile:
+                    reader = csv.DictReader(csvfile)
+                    for row in reader:
+                        self.add_employee(row['Employee ID'])
+
+                        employee = self.employees.get(row['Employee ID'])
+                        employee.amount_vacation_days = int(
+                            row['Vacation Days']) if row['Vacation Days'] else 30
+                        employee.amount_old_vacation_days = int(
+                            row['Old Vacation Days']) if row['Old Vacation Days'] else 0
+
+            except Exception as e:
+                print("Error", f"Failed to load employees: {e}")
+
+    def save_employees(self):
+        """
+        Save the list of employees to disk
+        """
+        if False:  # gui_constants.USE_DATABASE:
+            print("Accessing database...")
+        else:
+            with open(self.file_path_employees, 'w', newline='') as csvfile:
+                writer = csv.DictWriter(csvfile, fieldnames=[
+                                        'Employee ID', 'Vacation Days', 'Old Vacation Days'])
+                writer.writeheader()
+                for employee in self.employees.values():
+                    writer.writerow({'Employee ID': employee.employee_id,
+                                     'Vacation Days': employee.amount_vacation_days,
+                                     'Old Vacation Days': employee.amount_old_vacation_days
+                                     })
+
     def hide_empty_row(self):
         """
         Conditionally hides the last row of the
@@ -575,8 +577,8 @@ class Timesheet:
             if self.current_employee.on_break is not None:
                 self.log_break_time()
             today.end_time = dtf.get_current_time(self)
-
-        self.current_employee.save_working_days()
+        if not gui_constants.REDUCED_DATABASE_TRAFFIC:
+            self.current_employee.save_working_days()
         self.update_from_db()
 
     def log_break_time(self):
@@ -604,7 +606,8 @@ class Timesheet:
 
             self.current_employee.on_break = None
 
-        self.current_employee.save_working_days()
+        if not gui_constants.REDUCED_DATABASE_TRAFFIC:
+            self.current_employee.save_working_days()
         self.update_from_db()
 
     def update_buttons(self):
@@ -671,7 +674,8 @@ class Timesheet:
             except AttributeError as e:
                 print(e)  # pass
 
-            self.current_employee.save_working_days()
+            if not gui_constants.REDUCED_DATABASE_TRAFFIC:
+                self.current_employee.save_working_days()
 
     def delete_input_data(self, day):
         """
@@ -701,7 +705,8 @@ class Timesheet:
                 work_day.break_time = None
 
             day.set_total_time(work_day.get_work_time())
-            self.current_employee.save_working_days()
+            if not gui_constants.REDUCED_DATABASE_TRAFFIC:
+                self.current_employee.save_working_days()
 
 
 # Testing GUI
