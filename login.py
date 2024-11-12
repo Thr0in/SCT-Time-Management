@@ -106,10 +106,6 @@ class LoginFrame(tk.Frame):
         Reads the stored user data from "userdaten.txt" and checks if the
         entered credentials match any stored user. If successful, displays
         a success message. If validation fails, displays an error message.
-
-        Returns
-        -------
-        None
         """
         username = self.__entry_username.get()
         password = self.__entry_password.get()

@@ -238,63 +238,74 @@ class WorkTimeEmployee():
         'Start Time', 'End Time', 'Break Time', and 'State'.
         """
         if gui_constants.USE_DATABASE and not gui_constants.IMPORT_FROM_CSV:
-            print("Accessing database...")
+            self.read_from_database()
+        else:
+            self.read_from_csv()
+            
+    def read_from_database(self):
+        """
+        Reads data from the database.
+        """
+        print("Accessing database...")
 
-            try:
-                # Create connection to the database
-                db = DatabaseFunctions()
-                db.connect_to_database()
+        try:
+            # Create connection to the database
+            db = DatabaseFunctions()
+            db.connect_to_database()
 
-                # Query to get all working days from the timesheet table for the employee
-                db.c.execute('''SELECT date, starttime, endtime, breaktime, state FROM timesheet
-                                WHERE employee_id = ?''', (self.employee_id,))
+            # Query to get all working days from the timesheet table for the employee
+            db.c.execute('''SELECT date, starttime, endtime, breaktime, state FROM timesheet
+                            WHERE employee_id = ?''', (self.employee_id,))
 
-                # Fetch all results
-                rows = db.c.fetchall()
+            # Fetch all results
+            rows = db.c.fetchall()
 
-                # Populate the working_days dictionary
-                for row in rows:
-                    date_object = dtf.convert_string_to_date(self, row[0])  # Convert date string to datetime
+            # Populate the working_days dictionary
+            for row in rows:
+                date_object = dtf.convert_string_to_date(self, row[0])  # Convert date string to datetime
+                day = self.create_day(date_object)
+
+                # Handle start_time and end_time by extracting time from datetime string
+                day.start_time = dtf.convert_string_to_time_from_datetime(self, row[1]) if row[1] else None
+                day.end_time = dtf.convert_string_to_time_from_datetime(self, row[2]) if row[2] else None
+
+                # Handle break_time
+                day.break_time = float(row[3]) if row[3] else None
+
+                # Handle state
+                day.state = row[4]
+
+        # Catch possible errors
+        except sqlite3.Error as e:
+            print(f"Error loading working days from the database: {e}")
+
+        # Ensure database connection is closed even in case of error
+        finally:
+            db.disconnect_from_database()
+            
+    def read_from_csv(self):
+        """
+        Reads data from a csv.
+        """
+        try:
+            with open(self.file_path, 'r') as csvfile:
+                reader = csv.DictReader(csvfile)
+
+                for row in reader:
+                    date_object = dtf.convert_string_to_date(
+                        self, row['Date'])
                     day = self.create_day(date_object)
 
-                    # Handle start_time and end_time by extracting time from datetime string
-                    day.start_time = dtf.convert_string_to_time_from_datetime(self, row[1]) if row[1] else None
-                    day.end_time = dtf.convert_string_to_time_from_datetime(self, row[2]) if row[2] else None
+                    day.start_time = dtf.convert_string_to_time(
+                        self, row['Start Time']) if row['Start Time'] else None
+                    day.end_time = dtf.convert_string_to_time(
+                        self, row['End Time']) if row['End Time'] else None
+                    day.break_time = float(
+                        row['Break Time']) if row['Break Time'] else None
+                    day.state = row['State']
 
-                    # Handle break_time
-                    day.break_time = float(row[3]) if row[3] else None
-
-                    # Handle state
-                    day.state = row[4]
-
-            # Catch possible errors
-            except sqlite3.Error as e:
-                print(f"Error loading working days from the database: {e}")
-
-            # Ensure database connection is closed even in case of error
-            finally:
-                db.disconnect_from_database()
-
-        else:
-            try:
-                with open(self.file_path, 'r') as csvfile:
-                    reader = csv.DictReader(csvfile)
-
-                    for row in reader:
-                        date_object = dtf.convert_string_to_date(
-                            self, row['Date'])
-                        day = self.create_day(date_object)
-
-                        day.start_time = dtf.convert_string_to_time(
-                            self, row['Start Time']) if row['Start Time'] else None
-                        day.end_time = dtf.convert_string_to_time(
-                            self, row['End Time']) if row['End Time'] else None
-                        day.break_time = float(
-                            row['Break Time']) if row['Break Time'] else None
-                        day.state = row['State']
-
-            except Exception as e:
-                print("Error", f"Failed to load timesheet: {e}")
+        except Exception as e:
+            print("Error", f"Failed to load timesheet: {e}")
 
     def save_working_days(self):
         """
@@ -302,59 +313,70 @@ class WorkTimeEmployee():
         'Start Time', 'End Time', 'Break Time', and 'State'.
         """
         if gui_constants.USE_DATABASE:
-            print("Accessing database...")
-
-            try:
-                # Create connection to the
-                # Important: use instance -> db=...
-                db = DatabaseFunctions()
-                db.connect_to_database()
-
-                # Save data to database
-                for date_string, day in self.working_days.items():
-                    # Ensure that the day has data before saving
-                    if day.has_entry():
-                        # Ensure breaktime is valid, set to None if less than 15 seconds.
-                        if day.break_time is not None and day.break_time < 15:
-                            day.break_time = None
-
-                        # Insert or update the database
-                        db.insert_into_database(
-                            self.employee_id,
-                            date_string,
-                            day.start_time,
-                            day.end_time,
-                            day.break_time,
-                            day.state
-                        )
-
-            # Catch possible errors
-            except sqlite3.Error as e:
-                print(f"Error saving working days to the database: {e}")
-
-            # Ensure database connection is closed even in case of error
-            finally:
-                db.disconnect_from_database()
-
+            self.save_to_database()
         else:
-            with open(self.file_path, 'w', newline='') as csvfile:
+            self.save_to_csv()
+            
+    def save_to_database(self):
+        """
+        Save data to the database.
+        """
+        print("Accessing database...")
 
-                fieldnames = ['Date', 'Start Time',
-                              'End Time', 'Break Time', 'State']
-                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        try:
+            # Create connection to the
+            # Important: use instance -> db=...
+            db = DatabaseFunctions()
+            db.connect_to_database()
 
-                writer.writeheader()
-                for date_string, day in self.working_days.items():
-                    if day.has_entry():
-                        if day.break_time is not None and day.break_time < 60:
-                            day.break_time = None
-                        writer.writerow({
-                            'Date': date_string,
-                            'Start Time': dtf.time_object_to_string(self, day.start_time),
-                            'End Time': dtf.time_object_to_string(self, day.end_time),
-                            'Break Time': day.break_time,
-                            'State': day.state
-                        })
+            # Save data to database
+            for date_string, day in self.working_days.items():
+                # Ensure that the day has data before saving
+                if day.has_entry():
+                    # Ensure breaktime is valid, set to None if less than 15 seconds.
+                    if day.break_time is not None and day.break_time < 15:
+                        day.break_time = None
+
+                    # Insert or update the database
+                    db.insert_into_database(
+                        self.employee_id,
+                        date_string,
+                        day.start_time,
+                        day.end_time,
+                        day.break_time,
+                        day.state
+                    )
+
+        # Catch possible errors
+        except sqlite3.Error as e:
+            print(f"Error saving working days to the database: {e}")
+
+        # Ensure database connection is closed even in case of error
+        finally:
+            db.disconnect_from_database()
+                        
+    def save_to_csv(self):
+        """
+        Save data to the database.
+        """
+        with open(self.file_path, 'w', newline='') as csvfile:
+
+            fieldnames = ['Date', 'Start Time',
+                          'End Time', 'Break Time', 'State']
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+
+            writer.writeheader()
+            for date_string, day in self.working_days.items():
+                if day.has_entry():
+                    if day.break_time is not None and day.break_time < 60:
+                        day.break_time = None
+                    writer.writerow({
+                        'Date': date_string,
+                        'Start Time': dtf.time_object_to_string(self, day.start_time),
+                        'End Time': dtf.time_object_to_string(self, day.end_time),
+                        'Break Time': day.break_time,
+                        'State': day.state
+                    })
 
 
 # Testing the data model

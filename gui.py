@@ -8,6 +8,7 @@ Created on Sun Nov 10 11:45:51 2024
 import tkinter as tk
 import re
 from dateutil.relativedelta import relativedelta
+import calendar
 
 from datetime_functions import DatetimeFunctions as dtf
 import gui_constants
@@ -470,9 +471,7 @@ class MainApp(tk.Frame):
             row=0, column=6, sticky="new", padx=5, pady=5)
 
         # Row of labels for each day of the week
-        days_of_week = ["Monday", "Tuesday", "Wednesday",
-                        "Thursday", "Friday", "Saturday", "Sunday"]
-        for i, day in enumerate(days_of_week):
+        for i, day in enumerate(calendar.day_name):
             day_label = tk.Label(self.calendar_frame,
                                  text=day, font=("Arial", 14), bg=gui_constants.ACCENT_COLOR)
             day_label.grid(row=1, column=i, sticky="nsew")
