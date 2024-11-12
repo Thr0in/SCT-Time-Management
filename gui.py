@@ -30,13 +30,14 @@ class Day_Widget(tk.Frame):
         # Create a Frame for the composite widget
 
         vcmd = (self.register(self.on_validate_input), '%P')
+        vcmd_start = (self.register(self.on_validate_start), '%P')
         vcmd_end = (self.register(self.on_validate_end), '%P')
 
         # Create and place labels and entries
         self.label_day = tk.Label(
             self, textvariable=self.var_day, anchor="center")
         self.entry_start = tk.Entry(self, textvariable=self.var_start_time,
-                                    justify="center", validate="all", validatecommand=vcmd)
+                                    justify="center", validate="all", validatecommand=vcmd_start)
         self.entry_end = tk.Entry(self, textvariable=self.var_end_time,
                                   justify="center", validate="all", validatecommand=vcmd_end)
         self.entry_break = tk.Entry(self, textvariable=self.var_break_time,
@@ -107,6 +108,44 @@ class Day_Widget(tk.Frame):
 
         if len(field_input) > 5:
             is_valid = False
+
+        return is_valid
+    
+    def on_validate_start(self, field_input):
+        """
+        Validates that the start time input is in the correct format
+        and occurs before the end time.
+
+        Parameters
+        ----------
+        field_input : str
+            The input string for start time, expected in "HH:MM" format.
+
+        Returns
+        -------
+        bool
+            True if the start time is valid and
+            leads end time; False otherwise.
+        """
+        is_valid = self.on_validate_input(field_input)
+        
+        for i in range(0, len(field_input)):
+            try:
+                end = dtf.convert_string_to_time(
+                    self, self.var_end_time.get())
+            except ValueError:
+                end = dtf.convert_string_to_time(self, '23:59')
+
+            try:
+                start = field_input[:i+1] + '-0:00'[i+1:]
+                start = dtf.convert_string_to_time(self, start)
+            except Exception:
+                start = dtf.convert_string_to_time(self, '0:00')
+
+            try:
+                dtf.get_time_difference(self, start, end)
+            except ValueError:
+                is_valid = False
 
         return is_valid
 
