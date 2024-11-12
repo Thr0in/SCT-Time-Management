@@ -116,19 +116,26 @@ class LoginFrame(tk.Frame):
 
         with open(os.path.join(self.file_path_users, "userdata.txt"), "r") as file:
             users = file.readlines()
-
-        for user in users:
+            
+        login_unsuccessful = True
+        for i, user in enumerate(users):
             user_data = user.strip().split(",")
             if len(user_data) == 4:
                 file_username, file_password, role, name = user_data
                 if username == file_username and password == file_password:
+                    
 
                     #messagebox.showinfo("Login Erfolgreich",
                     #                    f"Login Erfolgreich als {username}")
+                    login_unsuccessful = True
                     self.main.login(username, role, name)
-                    return
-                    messagebox.showerror(
-                        "Fehler", "Benutzername oder Passwort ist falsch!")
+                    
+        if login_unsuccessful:
+            self.__entry_username.delete(0, 'end')
+            self.__entry_password.delete(0, 'end')
+            self.__entry_username.focus_set()
+            messagebox.showerror(
+                "Fehler", "Benutzername oder Passwort ist falsch!")
 
 
 # Testing Login
