@@ -70,8 +70,8 @@ class DatabaseFunctions:
             if isinstance(endtime, datetime.time):
                 endtime = DatetimeFunctions.merge_date_and_time_to_datetime(self, date, endtime)
 
-            # Calculate Workhours if endtime exists
-            if endtime is None:
+            # Calculate Workhours if starttime andendtime exists
+            if starttime is None or endtime is None:
                 workhours = None
             else:
                 workhours = DatetimeFunctions.get_time_difference(self, starttime, endtime)
@@ -126,8 +126,8 @@ class DatabaseFunctions:
             if isinstance(endtime, str) and endtime: #only converts if endtime exists
                 endtime = DatetimeFunctions.convert_string_to_time(self, endtime)
 
-            # Calculate Workhours if endtime exists
-            if endtime is None:
+            # Calculate Workhours if starttime and endtime exists
+            if starttime is None or endtime is None:
                 workhours = None
             else:
                 workhours = DatetimeFunctions.get_time_difference(self, starttime, endtime)
