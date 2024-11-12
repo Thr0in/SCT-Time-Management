@@ -20,7 +20,7 @@ class DatabaseFunctions:
     def connect_to_database(self):
         # Create or connect to a SQLite database
         # (the database file will be created if it doesn't exist yet)
-        self.conn = sqlite3.connect('timesheet.db')
+        self.conn = sqlite3.connect(gui_constants.DATABASE_PATH)
                                 # 'timesheet.db' is the file name
         # Create a cursor object to interact with the database
         self.c = self.conn.cursor()

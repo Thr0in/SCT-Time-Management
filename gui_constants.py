@@ -3,6 +3,7 @@ DAILY_WORKING_HOURS = 8
 NO_TIME_DATA = "--:--"
 TIME_FORMAT = '%H:%M'
 DATA_PATH = "data/"
+DATABASE_PATH = "data/timesheet.db"
 
 # Fonts
 BOLD = ('TkDefaultFont', 9, 'bold')
@@ -25,3 +26,4 @@ SHOW_ONLY_MINIMUM_DAYS = False
 USE_TEXT_HINTS = False
 USE_DATABASE = True
 REDUCED_DATABASE_TRAFFIC = True
+DONT_LOAD_FROM_CSV = True

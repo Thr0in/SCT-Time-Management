@@ -35,6 +35,7 @@ from datetime import date
 import os.path
 import csv
 import dateutil.relativedelta as rdelta
+import sqlite3
 
 from data_model import WorkTimeEmployee
 from datetime_functions import DatetimeFunctions as dtf
@@ -378,7 +379,6 @@ class Timesheet:
         """
         if employee_id not in self.employees:
             self.employees[employee_id] = WorkTimeEmployee(employee_id)
-            self.save_employees()
         else:
             print("Employee with id '{e_id}' already in database.".format(
                 e_id=employee_id))
@@ -430,8 +430,19 @@ class Timesheet:
         """
         Loads the list of employees from disk
         """
-        if False:  # gui_constants.USE_DATABASE:
+        if gui_constants.USE_DATABASE and gui_constants.DONT_LOAD_FROM_CSV:
             print("Accessing database...")
+            con = sqlite3.connect(gui_constants.DATABASE_PATH)
+            cur = con.cursor()
+            for row in cur.execute("SELECT employee_id, vacation_days, old_vacation_days FROM employees"):
+                self.add_employee(row[0])
+                employee = self.employees.get(row[0])
+                employee.amount_vacation_days = int(
+                    row[1]) if row[1] else 30
+                employee.amount_old_vacation_days = int(
+                    row[2]) if row[2] else 0
+            con.close()
+                
         else:
             try:
                 with open(self.file_path_employees, 'r') as csvfile:
@@ -452,8 +463,19 @@ class Timesheet:
         """
         Save the list of employees to disk
         """
-        if False:  # gui_constants.USE_DATABASE:
+        if gui_constants.USE_DATABASE:
             print("Accessing database...")
+            con = sqlite3.connect(gui_constants.DATABASE_PATH)
+            cur = con.cursor()
+            cur.execute(
+                "CREATE TABLE IF NOT EXISTS employees(employee_id TEXT PRIMARY KEY, vacation_days INTEGER, old_vacation_days INTEGER)")
+
+            for employee in self.employees.values():
+                cur.execute("INSERT OR REPLACE INTO employees(employee_id, vacation_days, old_vacation_days) VALUES (?, ?, ?)",
+                                (employee.employee_id, employee.amount_vacation_days, employee.amount_old_vacation_days))
+                
+            con.commit()
+            con.close()
         else:
             with open(self.file_path_employees, 'w', newline='') as csvfile:
                 writer = csv.DictWriter(csvfile, fieldnames=[

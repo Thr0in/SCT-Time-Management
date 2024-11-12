@@ -13,4 +13,5 @@ import gui_constants
 if __name__ == "__main__":
     #gui_constants.AUTO_LOGIN = True
     #gui_constants.DEBUG = True
+    #gui_constants.DONT_LOAD_FROM_CSV = False
     app = Timesheet()
