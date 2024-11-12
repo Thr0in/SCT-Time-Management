@@ -314,7 +314,7 @@ class WorkTimeEmployee():
         """
         if gui_constants.USE_DATABASE:
             self.save_to_database()
-        else:
+        if gui_constants.WRITE_TO_CSVS:
             self.save_to_csv()
             
     def save_to_database(self):
@@ -333,8 +333,8 @@ class WorkTimeEmployee():
             for date_string, day in self.working_days.items():
                 # Ensure that the day has data before saving
                 if day.has_entry():
-                    # Ensure breaktime is valid, set to None if less than 15 seconds.
-                    if day.break_time is not None and day.break_time < 15:
+                    # Ensure breaktime is valid, set to None if less than 60 seconds.
+                    if day.break_time is not None and day.break_time < 60:
                         day.break_time = None
 
                     # Insert or update the database

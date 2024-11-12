@@ -154,8 +154,7 @@ class Timesheet:
             self.load_employees()
         else:
             self.save_employees()
-        self.add_employee("default")
-        self.current_employee = self.employees.get("default")
+        self.current_employee = None
 
         self.login_frame = LoginFrame(self.root, self)
         self.login_frame.pack(expand=True, fill=tk.BOTH)
@@ -216,7 +215,7 @@ class Timesheet:
         """
         self.store_all_inputs()
         self.current_employee.save_working_days()
-        self.current_employee = self.employees.get('default')
+        self.current_employee = None
         self.save_employees()
 
         self.create_login_window()
@@ -254,9 +253,9 @@ class Timesheet:
         """
         Saves all employee working day data and closes the application.
         """
-        self.store_all_inputs()
+        if self.current_employee is not None:
+            self.store_all_inputs()
         for employee in self.employees.values():
-            self.current_employee = employee
             employee.save_working_days()
         self.save_employees()
         self.root.destroy()
@@ -434,6 +433,8 @@ class Timesheet:
             print("Accessing database...")
             con = sqlite3.connect(gui_constants.DATABASE_PATH)
             cur = con.cursor()
+            cur.execute(
+                "CREATE TABLE IF NOT EXISTS employees(employee_id TEXT PRIMARY KEY, vacation_days INTEGER, old_vacation_days INTEGER)")
             for row in cur.execute("SELECT employee_id, vacation_days, old_vacation_days FROM employees"):
                 self.add_employee(row[0])
                 employee = self.employees.get(row[0])
@@ -476,7 +477,7 @@ class Timesheet:
                 
             con.commit()
             con.close()
-        else:
+        if gui_constants.WRITE_TO_CSVS:
             with open(self.file_path_employees, 'w', newline='') as csvfile:
                 writer = csv.DictWriter(csvfile, fieldnames=[
                                         'Employee ID', 'Vacation Days', 'Old Vacation Days'])
@@ -599,6 +600,7 @@ class Timesheet:
             if self.current_employee.on_break is not None:
                 self.log_break_time()
             today.end_time = dtf.get_current_time(self)
+            
         if not gui_constants.REDUCED_DATABASE_TRAFFIC:
             self.current_employee.save_working_days()
         self.update_from_db()
@@ -698,6 +700,7 @@ class Timesheet:
 
             if not gui_constants.REDUCED_DATABASE_TRAFFIC:
                 self.current_employee.save_working_days()
+            self.update_buttons()
 
     def delete_input_data(self, day):
         """
@@ -729,6 +732,7 @@ class Timesheet:
             day.set_total_time(work_day.get_work_time())
             if not gui_constants.REDUCED_DATABASE_TRAFFIC:
                 self.current_employee.save_working_days()
+            self.update_buttons()
 
 
 # Testing GUI

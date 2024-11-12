@@ -96,7 +96,9 @@ class Day_Widget(tk.Frame):
             dtf.convert_string_to_time(self, field_input)
             if field_input[-2] != ":":
                 self.store_input()
-        except Exception:
+        except Exception as e:
+            print(e)
+            print("test")
             if field_input == '':
                 self.delete_input()
 
@@ -109,6 +111,8 @@ class Day_Widget(tk.Frame):
 
         if len(field_input) > 5:
             is_valid = False
+            
+        print(is_valid)
 
         return is_valid
     
@@ -131,22 +135,26 @@ class Day_Widget(tk.Frame):
         is_valid = self.on_validate_input(field_input)
         
         for i in range(0, len(field_input)):
-            try:
+            try:                
+                if self.var_end_time.get() == '':
+                    raise ValueError('End time is empty.')
                 end = dtf.convert_string_to_time(
                     self, self.var_end_time.get())
-            except ValueError:
+            except Exception:
                 end = dtf.convert_string_to_time(self, '23:59')
 
             try:
                 start = field_input[:i+1] + '-0:00'[i+1:]
                 start = dtf.convert_string_to_time(self, start)
             except Exception:
-                start = dtf.convert_string_to_time(self, '0:00')
+                start = dtf.convert_string_to_time(self, '00:00')
 
             try:
                 dtf.get_time_difference(self, start, end)
-            except ValueError:
+            except Exception:
                 is_valid = False
+                
+        print(is_valid)
 
         return is_valid
 
@@ -170,21 +178,27 @@ class Day_Widget(tk.Frame):
 
         for i in range(0, len(field_input)):
             try:
+                if self.var_start_time.get() == '':
+                    raise ValueError('Start time is empty.')
                 start = dtf.convert_string_to_time(
                     self, self.var_start_time.get())
-            except ValueError:
-                start = dtf.convert_string_to_time(self, '0:00')
+            except Exception:
+                start = dtf.convert_string_to_time(self, '00:00')
 
             try:
                 end = field_input[:i+1] + '-9:59'[i+1:]
                 end = dtf.convert_string_to_time(self, end)
             except Exception:
                 end = dtf.convert_string_to_time(self, '23:59')
-
+            
+            print(start, end)
+            
             try:
                 dtf.get_time_difference(self, start, end)
-            except ValueError:
+            except Exception:
                 is_valid = False
+
+        print(is_valid)
 
         return is_valid
 

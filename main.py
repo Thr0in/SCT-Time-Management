@@ -12,6 +12,9 @@ import gui_constants
 # Start STC time management program
 if __name__ == "__main__":
     #gui_constants.AUTO_LOGIN = True
+    #gui_constants.USE_DATABASE = False
     #gui_constants.DEBUG = True
-    #gui_constants.DONT_LOAD_FROM_CSV = False
+    #gui_constants.IMPORT_FROM_CSV = True
+    #gui_constants.WRITE_TO_CSVS = True
+
     app = Timesheet()
