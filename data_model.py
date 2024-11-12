@@ -237,7 +237,7 @@ class WorkTimeEmployee():
         Saves the working_days dictionary to a CSV file with columns 'Date',
         'Start Time', 'End Time', 'Break Time', and 'State'.
         """
-        if gui_constants.USE_DATABASE and gui_constants.DONT_LOAD_FROM_CSV:
+        if gui_constants.USE_DATABASE and not gui_constants.IMPORT_FROM_CSV:
             print("Accessing database...")
 
             try:

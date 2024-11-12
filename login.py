@@ -127,7 +127,7 @@ class LoginFrame(tk.Frame):
 
                     #messagebox.showinfo("Login Erfolgreich",
                     #                    f"Login Erfolgreich als {username}")
-                    login_unsuccessful = True
+                    login_unsuccessful = False
                     self.main.login(username, role, name)
                     
         if login_unsuccessful:

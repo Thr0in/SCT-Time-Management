@@ -430,7 +430,7 @@ class Timesheet:
         """
         Loads the list of employees from disk
         """
-        if gui_constants.USE_DATABASE and gui_constants.DONT_LOAD_FROM_CSV:
+        if gui_constants.USE_DATABASE and not gui_constants.IMPORT_FROM_CSV:
             print("Accessing database...")
             con = sqlite3.connect(gui_constants.DATABASE_PATH)
             cur = con.cursor()
