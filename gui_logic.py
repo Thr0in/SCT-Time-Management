@@ -305,7 +305,9 @@ class Timesheet:
         For every day without entry, the fields
         are filled with gui_constants.NO_TIME_DATA.
         """
-        self.current_employee.load_working_days()
+        if not gui_constants.REDUCED_DATABASE_TRAFFIC:
+            self.current_employee.save_working_days()
+            self.current_employee.load_working_days()
         for day in self.gui.days:
             current_date = day.date
             if current_date is not None:
