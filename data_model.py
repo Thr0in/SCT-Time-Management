@@ -400,5 +400,5 @@ if __name__ == "__main__":
         today.state = "default"
 
     test.save_working_days()
-    #print(list(test.working_days.items()))
-    #print("Flex time (seconds):", test.get_flex_time())
+    # print(list(test.working_days.items()))
+    # print("Flex time (seconds):", test.get_flex_time())

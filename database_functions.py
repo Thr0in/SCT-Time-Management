@@ -26,7 +26,7 @@ class DatabaseFunctions:
         # Create a cursor object to interact with the database
         self.c = self.conn.cursor()
 
-        # conn and c should be instance attributes of the class, so it can be used across different methods 
+        # conn and c should be instance attributes of the class, so it can be used across different methods
         # -> self.conn / self.c
 
         # Create a table (if it doesn't already exist)
@@ -99,7 +99,7 @@ class DatabaseFunctions:
             ''', (employee_id, date))
 
             # Fetch row, if it exists
-            existing_entry = self.c.fetchone()  
+            existing_entry = self.c.fetchone()
 
             # If record already exists then update it
             if existing_entry:
@@ -114,7 +114,7 @@ class DatabaseFunctions:
                     self.edit_in_database(
                         employee_id, date, starttime, endtime, breaktime, state)
                     print(f"Record for date {date} updated successfully.")
-            
+
             # If the record does not already exist, then insert it into the table
             else:
 

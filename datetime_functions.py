@@ -64,18 +64,18 @@ class DatetimeFunctions():
         # If input is a string, try to convert it
         if isinstance(time_str, str):
             try:
-                
+
                 # If there are seconds, but we only need hours and minutes (Format 'HH:MM:SS')
                 if len(time_str.split(':')) == 3:
                     # Strip off the seconds part by splitting the string and keeping only 'HH:MM'
                     time_str = ':'.join(time_str.split(':')[:2])
-                    
+
                 # Convert the string (Format 'HH:MM') to a datetime object and extract the time part
                 time = datetime.datetime.strptime(time_str, "%H:%M").time()
-                
+
                 # Return time
                 return time
-                
+
             # Raise Error if could not be converted because it was a diffrent format
             except ValueError:
                 raise ValueError(

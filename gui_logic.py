@@ -213,7 +213,7 @@ class Timesheet:
 
             self.current_employee = None
             self.save_employees()
-        except:
+        except Exception:
             tk.messagebox.showerror("Error", """Some times are invalid.
 Failed to save data to disk.""")
 
@@ -257,7 +257,7 @@ Failed to save data to disk.""")
             for employee in self.employees.values():
                 employee.save_working_days()
             self.save_employees()
-        except:
+        except Exception:
             tk.messagebox.showerror("Error", """Some times are invalid.
                                     Failed to save data to disk.""")
         self.root.destroy()
