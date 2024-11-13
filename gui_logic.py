@@ -13,20 +13,6 @@ Timesheet
     The main application window for the timesheet, featuring a calendar widget
     for date selection and a sidebar for additional options and data display.
 
-Functions:
-----------
-get_month_days(date_object)
-    Returns the days in the month as a flattened list of integers, including
-    padding days to create a 6x7 grid.
-
-change_color(color, container=None)
-    Changes the background color of a container widget
-    and all its child widgets.
-
-select_month(date_object=date.today())
-    Updates the calendar display based on the selected month,
-    highlighting the current day if applicable.
-
 @author: Luka, jnath, lpasd, Tim, Danny
 """
 import tkinter as tk

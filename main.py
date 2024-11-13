@@ -2,7 +2,7 @@
 """
 Created on Mon Nov  4 18:46:08 2024
 
-@author: Luka
+@author: Luka, jnath, lpasd, Tim, Danny
 """
 
 import argparse
@@ -33,7 +33,7 @@ if __name__ == "__main__":
     #     gui_constants.REDUCED_DATABASE_TRAFFIC = args.less_traffic
     #     gui_constants.IMPORT_FROM_CSV = args.import_csv
     #     gui_constants.WRITE_TO_CSVS = args.export_csv
-    # =========================================================================^
+    # =========================================================================
 
     # gui_constants.DEBUG = False
     # gui_constants.AUTO_LOGIN = False
