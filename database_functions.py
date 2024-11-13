@@ -2,7 +2,7 @@
 """
 Created on Thu Nov  7 08:34:07 2024
 
-@author: jnath
+@author: jnath, Luka
 """
 # Database Function Module
 
@@ -26,7 +26,8 @@ class DatabaseFunctions:
         # Create a cursor object to interact with the database
         self.c = self.conn.cursor()
 
-        # conn and c should be instance attributes of the class, so it can be used across different methods -> self.
+        # conn and c should be instance attributes of the class, so it can be used across different methods 
+        # -> self.conn / self.c
 
         # Create a table (if it doesn't already exist)
         with self.conn:
@@ -76,12 +77,15 @@ class DatabaseFunctions:
                 endtime = DatetimeFunctions.merge_date_and_time_to_datetime(
                     self, date, endtime)
 
-            # Calculate Workhours if starttime andendtime exists
+            # Calculate Workhours if starttime and endtime exist
+            # If no start or end time are logged, then the workhours are None
             if starttime is None or endtime is None:
                 workhours = None
+            # If both start and end time are logged, then calculate the time difference
             else:
                 workhours = DatetimeFunctions.get_time_difference(
                     self, starttime, endtime)
+                # convert workhours to full datetime object, so they can be stored in the table
                 if isinstance(workhours, datetime.time):
                     workhours = DatetimeFunctions.merge_date_and_time_to_datetime(
                         self, date, workhours)
@@ -95,19 +99,23 @@ class DatabaseFunctions:
             ''', (employee_id, date))
 
             # Fetch row, if it exists
-            existing_entry = self.c.fetchone()  # fetch row, if it exists
+            existing_entry = self.c.fetchone()  
 
             # If record already exists then update it
             if existing_entry:
-                # Check if entry has changed.
+                # Check if entry has changed:
+                # Make new entry to compare to the old one
                 new_entry = (employee_id, date, starttime,
                              endtime, workhours, breaktime, state)
 
+                # If the data of the new entry are not already in the table, then update them
                 if not self.__is_equal(existing_entry, new_entry):
 
                     self.edit_in_database(
                         employee_id, date, starttime, endtime, breaktime, state)
                     print(f"Record for date {date} updated successfully.")
+            
+            # If the record does not already exist, then insert it into the table
             else:
 
                 # Insert data into databse
@@ -117,7 +125,7 @@ class DatabaseFunctions:
                 # Commit the changes to the database
                 self.conn.commit()
 
-                # If data could not be inserted into database, raise error
+        # If data could not be inserted into database, raise error
         except sqlite3.Error as e:
             # Rollback in case something goes wrong
             self.conn.rollback()
@@ -222,5 +230,5 @@ class DatabaseFunctions:
 
     # Disconnect from database
     def disconnect_from_database(self):
-        # Step 5: Close the connection to the database
+        # Close the connection to the database
         self.conn.close()
