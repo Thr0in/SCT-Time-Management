@@ -97,8 +97,8 @@ class Day_Widget(tk.Frame):
             if field_input[-2] != ":":
                 self.store_input()
         except Exception as e:
-            print(e)
-            print("test")
+            if gui_constants.DEBUG:
+                print("Exception catched in on_validate_input:", e)
             if field_input == '':
                 self.delete_input()
 
@@ -111,11 +111,12 @@ class Day_Widget(tk.Frame):
 
         if len(field_input) > 5:
             is_valid = False
-            
-        print(is_valid)
+
+        if gui_constants.DEBUG:
+            print("Is time input valid? ", is_valid)
 
         return is_valid
-    
+
     def on_validate_start(self, field_input):
         """
         Validates that the start time input is in the correct format
@@ -133,9 +134,9 @@ class Day_Widget(tk.Frame):
             leads end time; False otherwise.
         """
         is_valid = self.on_validate_input(field_input)
-        
+
         for i in range(0, len(field_input)):
-            try:                
+            try:
                 if self.var_end_time.get() == '':
                     raise ValueError('End time is empty.')
                 end = dtf.convert_string_to_time(
@@ -153,8 +154,9 @@ class Day_Widget(tk.Frame):
                 dtf.get_time_difference(self, start, end)
             except Exception:
                 is_valid = False
-                
-        print(is_valid)
+
+        if gui_constants.DEBUG:
+            print("Is start time input valid? ", is_valid)
 
         return is_valid
 
@@ -190,15 +192,14 @@ class Day_Widget(tk.Frame):
                 end = dtf.convert_string_to_time(self, end)
             except Exception:
                 end = dtf.convert_string_to_time(self, '23:59')
-            
-            print(start, end)
-            
+
             try:
                 dtf.get_time_difference(self, start, end)
             except Exception:
                 is_valid = False
 
-        print(is_valid)
+        if gui_constants.DEBUG:
+            print("Is end time input valid? ", is_valid)
 
         return is_valid
 
