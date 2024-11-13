@@ -13,3 +13,4 @@ data/*
 .spyproject/config
 dist/*
 build/*
+main.spec
