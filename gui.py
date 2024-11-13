@@ -187,6 +187,10 @@ class Day_Widget(tk.Frame):
             except Exception:
                 start = dtf.convert_string_to_time(self, '00:00')
 
+            if len(field_input) > 1 and field_input[1] == ':':
+                field_input = '0' + field_input
+                i += 1
+
             try:
                 end = field_input[:i+1] + '-9:59'[i+1:]
                 end = dtf.convert_string_to_time(self, end)

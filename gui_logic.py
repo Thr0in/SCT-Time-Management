@@ -222,10 +222,14 @@ class Timesheet:
     def logout(self):
         """Save all data and log out the current employee."""
         self.store_all_inputs()
-        self.current_employee.save_working_days()
+        try:
+            self.current_employee.save_working_days()
 
-        self.current_employee = None
-        self.save_employees()
+            self.current_employee = None
+            self.save_employees()
+        except:
+            tk.messagebox.showerror("Error", """Some times are invalid.
+Failed to save data to disk.""")
 
         self.root.destroy()
         self.run()
@@ -263,9 +267,13 @@ class Timesheet:
         if self.current_employee is not None:
             self.store_all_inputs()
             self.current_employee = None
-        for employee in self.employees.values():
-            employee.save_working_days()
-        self.save_employees()
+        try:
+            for employee in self.employees.values():
+                employee.save_working_days()
+            self.save_employees()
+        except:
+            tk.messagebox.showerror("Error", """Some times are invalid.
+                                    Failed to save data to disk.""")
         self.root.destroy()
 
     def print_day(self, day, always_enabled=False):
@@ -627,9 +635,12 @@ class Timesheet:
         if today.start_time is None:
             today.start_time = dtf.get_current_time(self)
         else:
-            if self.current_employee.on_break is not None:
-                self.log_break_time()
-            today.end_time = dtf.get_current_time(self)
+            if today.start_time <= dtf.get_current_time(self):
+                if self.current_employee.on_break is not None:
+                    self.log_break_time()
+                today.end_time = dtf.get_current_time(self)
+            else:
+                tk.messagebox.showerror("Error", "Start time is in the future")
 
         if not gui_constants.REDUCED_DATABASE_TRAFFIC:
             self.current_employee.save_working_days()

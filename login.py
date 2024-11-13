@@ -27,7 +27,6 @@ When used in the main application, it should be embedded in the parent GUI.
 """
 
 import tkinter as tk
-from tkinter import messagebox
 import os.path
 
 import gui_constants
@@ -121,7 +120,7 @@ class LoginFrame(tk.Frame):
                 if username == file_username and password == file_password:
                     
 
-                    #messagebox.showinfo("Login Erfolgreich",
+                    #tk.messagebox.showinfo("Login Erfolgreich",
                     #                    f"Login Erfolgreich als {username}")
                     login_unsuccessful = False
                     self.main.login(username, role, name)
@@ -130,7 +129,7 @@ class LoginFrame(tk.Frame):
             self.__entry_username.delete(0, 'end')
             self.__entry_password.delete(0, 'end')
             self.__entry_username.focus_set()
-            messagebox.showerror(
+            tk.messagebox.showerror(
                 "Fehler", "Benutzername oder Passwort ist falsch!")
 
 
