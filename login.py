@@ -27,7 +27,6 @@ When used in the main application, it should be embedded in the parent GUI.
 """
 
 import tkinter as tk
-from tkinter import messagebox
 import os.path
 
 import gui_constants
@@ -106,10 +105,6 @@ class LoginFrame(tk.Frame):
         Reads the stored user data from "userdaten.txt" and checks if the
         entered credentials match any stored user. If successful, displays
         a success message. If validation fails, displays an error message.
-
-        Returns
-        -------
-        None
         """
         username = self.__entry_username.get()
         password = self.__entry_password.get()
@@ -117,18 +112,24 @@ class LoginFrame(tk.Frame):
         with open(os.path.join(self.file_path_users, "userdata.txt"), "r") as file:
             users = file.readlines()
 
-        for user in users:
+        login_unsuccessful = True
+        for i, user in enumerate(users):
             user_data = user.strip().split(",")
             if len(user_data) == 4:
                 file_username, file_password, role, name = user_data
                 if username == file_username and password == file_password:
 
-                    #messagebox.showinfo("Login Erfolgreich",
+                    # tk.messagebox.showinfo("Login Erfolgreich",
                     #                    f"Login Erfolgreich als {username}")
+                    login_unsuccessful = False
                     self.main.login(username, role, name)
-                    return
-                    messagebox.showerror(
-                        "Fehler", "Benutzername oder Passwort ist falsch!")
+
+        if login_unsuccessful:
+            self.__entry_username.delete(0, 'end')
+            self.__entry_password.delete(0, 'end')
+            self.__entry_username.focus_set()
+            tk.messagebox.showerror(
+                "Fehler", "Benutzername oder Passwort ist falsch!")
 
 
 # Testing Login

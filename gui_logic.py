@@ -13,20 +13,6 @@ Timesheet
     The main application window for the timesheet, featuring a calendar widget
     for date selection and a sidebar for additional options and data display.
 
-Functions:
-----------
-get_month_days(date_object)
-    Returns the days in the month as a flattened list of integers, including
-    padding days to create a 6x7 grid.
-
-change_color(color, container=None)
-    Changes the background color of a container widget
-    and all its child widgets.
-
-select_month(date_object=date.today())
-    Updates the calendar display based on the selected month,
-    highlighting the current day if applicable.
-
 @author: Luka, jnath, lpasd, Tim, Danny
 """
 import tkinter as tk
@@ -35,6 +21,7 @@ from datetime import date
 import os.path
 import csv
 import dateutil.relativedelta as rdelta
+import sqlite3
 
 from data_model import WorkTimeEmployee
 from datetime_functions import DatetimeFunctions as dtf
@@ -102,18 +89,23 @@ class Timesheet:
 
     def __init__(self):
         """
+        Construct a timesheet object.
+
         Initializes the Timesheet application
         window with a calendar and sidebar.
         Sets window dimensions, initializes
         selected date, adds a default employee,
         and starts the main loop.
+
+        Falls back to csv files if no database shall be used.
         """
+        if not gui_constants.USE_DATABASE:
+            gui_constants.IMPORT_FROM_CSV = True
+
         self.run()
 
     def run(self):
-        """
-        Creates the main window provided by the os' window manager.
-        """
+        """Create the main window provided by the os' window manager."""
         self.selected_date = date.today()
         self.root = tk.Tk()
 
@@ -126,6 +118,8 @@ class Timesheet:
 
     def create_login_window(self):
         """
+        Create login window.
+
         Creates the login window and prepares important
         attributes for the timesheet.
         """
@@ -138,6 +132,7 @@ class Timesheet:
         self.root.title("Login Screen")
         self.root.minsize(300, 200)
         self.root.geometry('300x200+%d+%d' % (window_pos_x, window_pos_y))
+        self.root.protocol("WM_DELETE_WINDOW", lambda: self.on_closing())
 
         try:
             os.mkdir(gui_constants.DATA_PATH)
@@ -149,12 +144,11 @@ class Timesheet:
         self.employees = {}
         self.file_path_employees = os.path.join(
             gui_constants.DATA_PATH, "employees.csv")
-        if os.path.isfile(self.file_path_employees):
+        if os.path.isfile(self.file_path_employees) or os.path.isfile(gui_constants.DATABASE_PATH):
             self.load_employees()
         else:
             self.save_employees()
-        self.add_employee("default")
-        self.current_employee = self.employees.get("default")
+        self.current_employee = None
 
         self.login_frame = LoginFrame(self.root, self)
         self.login_frame.pack(expand=True, fill=tk.BOTH)
@@ -162,9 +156,7 @@ class Timesheet:
         self.root.bind('<Return>', self.login_frame.login)
 
     def create_timesheet_window(self):
-        """
-        Create the timesheet widgets and initializes them.
-        """
+        """Create the timesheet widgets and initializes them."""
         self.login_frame.pack_forget()
 
         window_size_x = self.root.winfo_screenwidth()/2
@@ -195,7 +187,9 @@ class Timesheet:
 
     def login(self, user, role='Employee', name='default'):
         """
-        Logs in a user. Has to exist in userdata.txt
+        Log in a user.
+
+        Has to exist in userdata.txt
 
         Parameters
         ----------
@@ -207,62 +201,70 @@ class Timesheet:
         self.current_employee.role = role
         self.current_employee.name = name
 
+        self.current_employee.load_working_days()
+
         self.create_timesheet_window()
 
     def logout(self):
-        """
-        Saves all data and logs out the current employee.
-        """
+        """Save all data and log out the current employee."""
         self.store_all_inputs()
-        self.current_employee.save_working_days()
-        self.current_employee = self.employees.get('default')
-        self.save_employees()
+        try:
+            self.current_employee.save_working_days()
 
-        self.create_login_window()
+            self.current_employee = None
+            self.save_employees()
+        except Exception:
+            tk.messagebox.showerror("Error", """Some times are invalid.
+Failed to save data to disk.""")
 
-        self.on_closing()
+        self.root.destroy()
         self.run()
 
     def update(self, event=None):
         """
+        Update timesheet.
+
         Callback method for update button.
         """
         self.root.focus_set()
         self.update_info_panel()
 
     def request_vacation(self):
+        """Request a vacation day."""
         if self.current_employee.amount_old_vacation_days > 0:
             self.current_employee.amount_old_vacation_days -= 1
         elif self.current_employee.amount_vacation_days > 0:
             self.current_employee.amount_vacation_days -= 1
         else:
-            print("You can't request a day off as you don't have any vacation days left.")
+            print("""You can't request a day off as
+                  you don't have any vacation days left.""")
         self.update_info_panel()
         self.save_employees()
 
     def store_all_inputs(self):
-        """
-        Persistently save all data of the selected month on disk.
-        """
+        """Save all data of the selected month persistently on disk."""
         for day in self.gui.days:
             self.store_input_data(day)
         if not gui_constants.REDUCED_DATABASE_TRAFFIC:
             self.current_employee.save_working_days()
 
     def on_closing(self):
-        """
-        Saves all employee working day data and closes the application.
-        """
-        self.store_all_inputs()
-        for employee in self.employees.values():
-            self.current_employee = employee
-            employee.save_working_days()
-        self.save_employees()
+        """Save all employee working day data and closes the application."""
+        if self.current_employee is not None:
+            self.store_all_inputs()
+            self.current_employee = None
+        try:
+            for employee in self.employees.values():
+                employee.save_working_days()
+            self.save_employees()
+        except Exception:
+            tk.messagebox.showerror("Error", """Some times are invalid.
+                                    Failed to save data to disk.""")
         self.root.destroy()
 
     def print_day(self, day, always_enabled=False):
         """
-        Prints the details of a given working day if debugging is enabled.
+        Print the details of a given working day if debugging is enabled.
 
         Parameters
         ----------
@@ -277,9 +279,7 @@ class Timesheet:
             print(day.state)
 
     def update_info_panel(self):
-        """
-        Updates the flex-time and vacation day information in the sidebar.
-        """
+        """Update the flex-time and vacation day information in the sidebar."""
         panel = self.gui.sidebar.info_panel
         panel.var_flex_time.set(dtf.time_to_string(
             self, self.current_employee.get_flex_time(), unsigned=False))
@@ -289,9 +289,7 @@ class Timesheet:
             self.current_employee.amount_old_vacation_days)
 
     def purge_inputs(self):
-        """
-        Removes all data from all input fields.
-        """
+        """Remove all data from all input fields."""
         for day in self.gui.days:
             day.set_start_time(None)
             day.set_end_time(None)
@@ -300,12 +298,14 @@ class Timesheet:
 
     def update_from_db(self):
         """
-        Loads and updates the calendar from
-        the current employee’s data model.
+        Load and update the calendar from the current employee’s data model.
+
         For every day without entry, the fields
         are filled with gui_constants.NO_TIME_DATA.
         """
-        self.current_employee.load_working_days()
+        if not gui_constants.REDUCED_DATABASE_TRAFFIC:
+            self.current_employee.save_working_days()
+            self.current_employee.load_working_days()
         for day in self.gui.days:
             current_date = day.date
             if current_date is not None:
@@ -325,7 +325,7 @@ class Timesheet:
 
     def get_old_date_of_day(self, day):
         """
-        Returns the date currently displayed by the specified DayWidget.
+        Return the date currently displayed by the specified DayWidget.
 
         Parameters
         ----------
@@ -350,8 +350,7 @@ class Timesheet:
 
     def get_date_month_delta(self, month_delta):
         """
-        Returns the date with the same day as
-        the selected date in another month.
+        Return a date with the same day as the selected date in another month.
 
         Parameters
         ----------
@@ -369,7 +368,7 @@ class Timesheet:
 
     def add_employee(self, employee_id):
         """
-        Adds an employee with the specified ID to the application.
+        Add an employee with the specified ID to the application.
 
         Parameters
         ----------
@@ -378,15 +377,13 @@ class Timesheet:
         """
         if employee_id not in self.employees:
             self.employees[employee_id] = WorkTimeEmployee(employee_id)
-            self.save_employees()
         else:
             print("Employee with id '{e_id}' already in database.".format(
                 e_id=employee_id))
 
     def get_month_days(self, date_object):
         """
-        Returns a list of day numbers for a
-        specified month, padded to a 6x7 grid.
+        Return day numbers as list for a specified month, padded to a 6x7 grid.
 
         Parameters
         ----------
@@ -406,8 +403,7 @@ class Timesheet:
 
     def change_color(self, color, container=None):
         """
-        Recursively changes the background color of a widget
-        and its child widgets.
+        Change the background color of a widget and its children recursively .
 
         Parameters
         ----------
@@ -427,48 +423,102 @@ class Timesheet:
                 self.change_color(color, child)
 
     def load_employees(self):
-        """
-        Loads the list of employees from disk
-        """
-        if False:  # gui_constants.USE_DATABASE:
-            print("Accessing database...")
-        else:
-            try:
-                with open(self.file_path_employees, 'r') as csvfile:
-                    reader = csv.DictReader(csvfile)
-                    for row in reader:
-                        self.add_employee(row['Employee ID'])
+        """Load the list of employees from disk."""
+        if gui_constants.USE_DATABASE:
+            self.load_employees_from_database()
+        if gui_constants.IMPORT_FROM_CSV:
+            self.load_employees_from_csv()
 
-                        employee = self.employees.get(row['Employee ID'])
-                        employee.amount_vacation_days = int(
-                            row['Vacation Days']) if row['Vacation Days'] else 30
-                        employee.amount_old_vacation_days = int(
-                            row['Old Vacation Days']) if row['Old Vacation Days'] else 0
+    def load_employees_from_database(self):
+        """Load employees and their vacation days from the database."""
+        con = sqlite3.connect(gui_constants.DATABASE_PATH)
+        cur = con.cursor()
+        cur.execute("""CREATE TABLE IF NOT EXISTS employees(
+                        employee_id TEXT PRIMARY KEY,
+                        vacation_days INTEGER,
+                        old_vacation_days INTEGER)"""
+                    )
 
-            except Exception as e:
-                print("Error", f"Failed to load employees: {e}")
+        for row in cur.execute("""SELECT employee_id,
+                                   vacation_days,
+                                   old_vacation_days FROM employees"""):
+            self.add_employee(row[0])
+            employee = self.employees.get(row[0])
+            employee.amount_vacation_days = int(
+                row[1]) if row[1] else 30
+            employee.amount_old_vacation_days = int(
+                row[2]) if row[2] else 0
+        con.close()
+
+    def load_employees_from_csv(self):
+        """Load employees and their vacation days from a csv file."""
+        try:
+            with open(self.file_path_employees, 'r') as csvfile:
+                reader = csv.DictReader(csvfile)
+                for row in reader:
+                    self.add_employee(row['Employee ID'])
+
+                    employee = self.employees.get(row['Employee ID'])
+                    employee.amount_vacation_days = int(
+                        row['Vacation Days']) if row['Vacation Days'] else 30
+                    employee.amount_old_vacation_days = int(
+                        row['Old Vacation Days']) if row['Old Vacation Days'] else 0
+
+        except Exception as e:
+            print("Error", f"Failed to load employees: {e}")
 
     def save_employees(self):
-        """
-        Save the list of employees to disk
-        """
-        if False:  # gui_constants.USE_DATABASE:
-            print("Accessing database...")
-        else:
-            with open(self.file_path_employees, 'w', newline='') as csvfile:
-                writer = csv.DictWriter(csvfile, fieldnames=[
-                                        'Employee ID', 'Vacation Days', 'Old Vacation Days'])
-                writer.writeheader()
-                for employee in self.employees.values():
-                    writer.writerow({'Employee ID': employee.employee_id,
-                                     'Vacation Days': employee.amount_vacation_days,
-                                     'Old Vacation Days': employee.amount_old_vacation_days
-                                     })
+        """Save the list of employees to disk."""
+        if gui_constants.USE_DATABASE:
+            self.save_employees_to_database()
+        if gui_constants.WRITE_TO_CSVS:
+            self.save_employees_to_csv()
+
+    def save_employees_to_database(self):
+        """Save the list of employees and their vacation days to a csv file."""
+        con = sqlite3.connect(gui_constants.DATABASE_PATH)
+        cur = con.cursor()
+        cur.execute(
+            """CREATE TABLE IF NOT EXISTS
+            employees(employee_id TEXT PRIMARY KEY,
+            vacation_days INTEGER,
+            old_vacation_days INTEGER)"""
+        )
+
+        for employee in self.employees.values():
+            cur.execute("""INSERT OR REPLACE INTO employees(employee_id,
+                        vacation_days,
+                        old_vacation_days) VALUES (?, ?, ?)""",
+                        (employee.employee_id,
+                         employee.amount_vacation_days,
+                         employee.amount_old_vacation_days)
+                        )
+
+        con.commit()
+        con.close()
+
+    def save_employees_to_csv(self):
+        """Save the list of employees and their vacation days to a csv file."""
+        with open(self.file_path_employees, 'w', newline='') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=[
+                                    'Employee ID',
+                                    'Vacation Days',
+                                    'Old Vacation Days'
+                                    ])
+            writer.writeheader()
+            for employee in self.employees.values():
+                writer.writerow({
+                    'Employee ID': employee.employee_id,
+                    'Vacation Days': employee.amount_vacation_days,
+                    'Old Vacation Days': employee.amount_old_vacation_days
+                })
 
     def hide_empty_row(self):
         """
+        Shrink calendar to minimum number of days.
+
         Conditionally hides the last row of the
-        calendar if it contains only empty days.
+        calendar if it contains only days of the next month.
         """
         if gui_constants.SHOW_ONLY_MINIMUM_DAYS:
             month_days_flat = sum(calendar.monthcalendar(
@@ -482,7 +532,7 @@ class Timesheet:
 
     def select_month(self, date_object=date.today()):
         """
-        Updates the calendar to show the selected month.
+        Update the calendar to show the selected month.
 
         Highlights the current day if it falls within the displayed month.
 
@@ -492,7 +542,6 @@ class Timesheet:
             The date object representing the month to display.
             Defaults to today.
         """
-        # self.store_all_inputs()
         self.purge_inputs()
         if date_object == "self.selected_date":
             date_object = self.selected_date
@@ -550,7 +599,7 @@ class Timesheet:
 
     def strip_zero_from_list(self, array):
         """
-        Returns the provided list without any zeros.
+        Return the provided list without any zeros.
 
         Parameters
         ----------
@@ -565,25 +614,27 @@ class Timesheet:
         return [value for value in array if value != 0]
 
     def log_work_time(self):
-        """
-        Logs the start or end time of a workday and updates the display.
-        """
+        """Log the start or end time of a workday and update the display."""
         self.store_all_inputs()
         today = self.current_employee.create_day()
         self.print_day(today)
         if today.start_time is None:
             today.start_time = dtf.get_current_time(self)
         else:
-            if self.current_employee.on_break is not None:
-                self.log_break_time()
-            today.end_time = dtf.get_current_time(self)
+            if today.start_time <= dtf.get_current_time(self):
+                if self.current_employee.on_break is not None:
+                    self.log_break_time()
+                today.end_time = dtf.get_current_time(self)
+            else:
+                tk.messagebox.showerror("Error", "Start time is in the future")
+
         if not gui_constants.REDUCED_DATABASE_TRAFFIC:
             self.current_employee.save_working_days()
         self.update_from_db()
 
     def log_break_time(self):
         """
-        Logs the start or end time of a break period and updates the display.
+        Log the start or end time of a break period and update the display.
 
         As long as the workday is not ended, an
         arbitrary amount of breaks can be entered.
@@ -611,25 +662,25 @@ class Timesheet:
         self.update_from_db()
 
     def update_buttons(self):
-        """
-        Updates button labels in the sidebar based on the current work state.
-        """
-        if self.current_employee.create_day().start_time is None:
-            button_label = "Start Workday"
-        elif self.current_employee.create_day().end_time is None:
-            button_label = "End Workday"
-        else:
-            button_label = "Update Endtime"
-        self.gui.sidebar.button_log_work.config(text=button_label)
-
+        """Update button labels in the sidebar based on current work state."""
         if self.current_employee.on_break is not None:
-            button_label = "End Break"
+            button_label_break = "End Break"
         else:
-            button_label = "Start Break"
-        self.gui.sidebar.button_log_break.config(text=button_label)
+            button_label_break = "Start Break"
+        self.gui.sidebar.button_log_break.config(text=button_label_break)
+
+        if self.current_employee.create_day().start_time is None:
+            button_label_time = "Start Workday"
+        elif self.current_employee.create_day().end_time is None:
+            button_label_time = "End Workday"
+        else:
+            button_label_time = "Update Endtime"
+        self.gui.sidebar.button_log_work.config(text=button_label_time)
 
     def store_input_data(self, day):
         """
+        Store input data of given day widget.
+
         Stores all present data from the given days input
         fields in the internal data model
         Parameters
@@ -676,10 +727,13 @@ class Timesheet:
 
             if not gui_constants.REDUCED_DATABASE_TRAFFIC:
                 self.current_employee.save_working_days()
+            self.update_buttons()
 
     def delete_input_data(self, day):
         """
-        Deletes all missing data in the given days input
+        Delete data from internal memory.
+
+        Delete all missing data in the given days input
         fields from the internal data model
         Parameters
         ----------
@@ -707,6 +761,7 @@ class Timesheet:
             day.set_total_time(work_day.get_work_time())
             if not gui_constants.REDUCED_DATABASE_TRAFFIC:
                 self.current_employee.save_working_days()
+            self.update_buttons()
 
 
 # Testing GUI

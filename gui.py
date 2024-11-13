@@ -8,6 +8,7 @@ Created on Sun Nov 10 11:45:51 2024
 import tkinter as tk
 import re
 from dateutil.relativedelta import relativedelta
+import calendar
 
 from datetime_functions import DatetimeFunctions as dtf
 import gui_constants
@@ -30,13 +31,14 @@ class Day_Widget(tk.Frame):
         # Create a Frame for the composite widget
 
         vcmd = (self.register(self.on_validate_input), '%P')
+        vcmd_start = (self.register(self.on_validate_start), '%P')
         vcmd_end = (self.register(self.on_validate_end), '%P')
 
         # Create and place labels and entries
         self.label_day = tk.Label(
             self, textvariable=self.var_day, anchor="center")
         self.entry_start = tk.Entry(self, textvariable=self.var_start_time,
-                                    justify="center", validate="all", validatecommand=vcmd)
+                                    justify="center", validate="all", validatecommand=vcmd_start)
         self.entry_end = tk.Entry(self, textvariable=self.var_end_time,
                                   justify="center", validate="all", validatecommand=vcmd_end)
         self.entry_break = tk.Entry(self, textvariable=self.var_break_time,
@@ -94,7 +96,9 @@ class Day_Widget(tk.Frame):
             dtf.convert_string_to_time(self, field_input)
             if field_input[-2] != ":":
                 self.store_input()
-        except Exception:
+        except Exception as e:
+            if gui_constants.DEBUG:
+                print("Exception catched in on_validate_input:", e)
             if field_input == '':
                 self.delete_input()
 
@@ -107,6 +111,52 @@ class Day_Widget(tk.Frame):
 
         if len(field_input) > 5:
             is_valid = False
+
+        if gui_constants.DEBUG:
+            print("Is time input valid? ", is_valid)
+
+        return is_valid
+
+    def on_validate_start(self, field_input):
+        """
+        Validates that the start time input is in the correct format
+        and occurs before the end time.
+
+        Parameters
+        ----------
+        field_input : str
+            The input string for start time, expected in "HH:MM" format.
+
+        Returns
+        -------
+        bool
+            True if the start time is valid and
+            leads end time; False otherwise.
+        """
+        is_valid = self.on_validate_input(field_input)
+
+        for i in range(0, len(field_input)):
+            try:
+                if self.var_end_time.get() == '':
+                    raise ValueError('End time is empty.')
+                end = dtf.convert_string_to_time(
+                    self, self.var_end_time.get())
+            except Exception:
+                end = dtf.convert_string_to_time(self, '23:59')
+
+            try:
+                start = field_input[:i+1] + '-0:00'[i+1:]
+                start = dtf.convert_string_to_time(self, start)
+            except Exception:
+                start = dtf.convert_string_to_time(self, '00:00')
+
+            try:
+                dtf.get_time_difference(self, start, end)
+            except Exception:
+                is_valid = False
+
+        if gui_constants.DEBUG:
+            print("Is start time input valid? ", is_valid)
 
         return is_valid
 
@@ -130,10 +180,16 @@ class Day_Widget(tk.Frame):
 
         for i in range(0, len(field_input)):
             try:
+                if self.var_start_time.get() == '':
+                    raise ValueError('Start time is empty.')
                 start = dtf.convert_string_to_time(
                     self, self.var_start_time.get())
-            except ValueError:
-                start = dtf.convert_string_to_time(self, '0:00')
+            except Exception:
+                start = dtf.convert_string_to_time(self, '00:00')
+
+            if len(field_input) > 1 and field_input[1] == ':':
+                field_input = '0' + field_input
+                i += 1
 
             try:
                 end = field_input[:i+1] + '-9:59'[i+1:]
@@ -143,8 +199,11 @@ class Day_Widget(tk.Frame):
 
             try:
                 dtf.get_time_difference(self, start, end)
-            except ValueError:
+            except Exception:
                 is_valid = False
+
+        if gui_constants.DEBUG:
+            print("Is end time input valid? ", is_valid)
 
         return is_valid
 
@@ -431,9 +490,7 @@ class MainApp(tk.Frame):
             row=0, column=6, sticky="new", padx=5, pady=5)
 
         # Row of labels for each day of the week
-        days_of_week = ["Monday", "Tuesday", "Wednesday",
-                        "Thursday", "Friday", "Saturday", "Sunday"]
-        for i, day in enumerate(days_of_week):
+        for i, day in enumerate(calendar.day_name):
             day_label = tk.Label(self.calendar_frame,
                                  text=day, font=("Arial", 14), bg=gui_constants.ACCENT_COLOR)
             day_label.grid(row=1, column=i, sticky="nsew")
