@@ -47,11 +47,10 @@ class DatetimeFunctions():
     # ------------------------------------------------------------------------------
 
     def convert_string_to_time(self, time_str):
-        """ Converts a string ('HH:MM' format) to datetime """
+        """ Converts a string ('HH:MM' or 'HH:MM:SS' format) to datetime.time object """
 
         # If the string is empty or None
         if not time_str:
-            # Or handle this case appropriately (e.g., return None)
             return None
 
         # If input is already a datetime.time object, return it directly
@@ -65,16 +64,18 @@ class DatetimeFunctions():
         # If input is a string, try to convert it
         if isinstance(time_str, str):
             try:
-
+                
                 # If there are seconds, but we only need hours and minutes (Format 'HH:MM:SS')
                 if len(time_str.split(':')) == 3:
                     # Strip off the seconds part by splitting the string and keeping only 'HH:MM'
                     time_str = ':'.join(time_str.split(':')[:2])
-
-                # Convert the string to a datetime object and extract the time part
+                    
+                # Convert the string (Format 'HH:MM') to a datetime object and extract the time part
                 time = datetime.datetime.strptime(time_str, "%H:%M").time()
+                
                 # Return time
                 return time
+                
             # Raise Error if could not be converted because it was a diffrent format
             except ValueError:
                 raise ValueError(
@@ -123,6 +124,7 @@ class DatetimeFunctions():
                 # Use original convert_string_to_time function
                 time = DatetimeFunctions().convert_string_to_time(time_part)
                 return time
+            # Raise Error if could not be converted because it was a diffrent format
             except Exception as e:
                 raise ValueError(
                     f"Invalid datetime format: {datetime_str}, Error: {str(e)}")
@@ -136,7 +138,9 @@ class DatetimeFunctions():
         # If time is a string, try to convert it to a datetime.time object
         if isinstance(time, str):
             try:
+                # Try to convert stringt to datetime.time object
                 time = self.convert_string_to_time(time)
+            # Raise Error if time could not be converted because it was a diffrent format
             except ValueError:
                 raise ValueError(
                     "Time is a string and cannot be converted to datetime. Therefore Date and time cannot be merged to datetime.")
@@ -149,7 +153,9 @@ class DatetimeFunctions():
         # If date is a string, convert it to a datetime.date object
         if isinstance(date, str):
             try:
+                # Try to convert it to a datetime.date object
                 date = self.convert_string_to_date(date)
+             # Raise Error if date could not be converted because it was a diffrent format
             except ValueError:
                 raise ValueError(
                     "Date is a string and cannot be converted to datetime. Therefore Date and time cannot be merged to datetime.")
@@ -164,6 +170,7 @@ class DatetimeFunctions():
             # If both are datetime objects, combine their parts
             return date.replace(hour=time.hour, minute=time.minute, second=time.second, microsecond=time.microsecond)
 
+        # Raise an error if the input is neither a string nor a datetime.date or datetime.time object
         else:
             raise TypeError(
                 "Both date and time must be datetime objects or valid date/time strings.")
@@ -194,7 +201,10 @@ class DatetimeFunctions():
         if end_datetime < start_datetime:
             raise ValueError("End time must be after start time")
 
+        # Calculate time difference
         delta = end_datetime - start_datetime
+
+        # Return time difference
         return delta.total_seconds()
 
     # ------------------------------------------------------------------------------
